@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "migrate": "node scripts/migrate-railway.js",
-    "create-admin": "node scripts/create-admin.js"
+    "create-admin": "node scripts/create-admin.js",
+    "test-login": "node scripts/test-login.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
