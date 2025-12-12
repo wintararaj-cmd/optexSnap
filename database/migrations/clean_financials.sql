@@ -1,0 +1,1 @@
+TRUNCATE TABLE invoices, orders, expenses RESTART IDENTITY CASCADE;
