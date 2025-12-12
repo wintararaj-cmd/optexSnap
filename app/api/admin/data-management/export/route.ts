@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // Helper function to convert data to CSV
 function convertToCSV(data: any[], headers: string[]): string {
     if (data.length === 0) return '';

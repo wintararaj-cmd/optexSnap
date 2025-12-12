@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { login } = useAuth();
@@ -32,5 +32,18 @@ export default function AuthCallbackPage() {
             <div className="spinner"></div>
             <p style={{ marginLeft: '1rem' }}>Completing login...</p>
         </div>
+    );
+}
+
+export default function AuthCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <div className="spinner"></div>
+                <p style={{ marginLeft: '1rem' }}>Loading...</p>
+            </div>
+        }>
+            <AuthCallbackContent />
+        </Suspense>
     );
 }

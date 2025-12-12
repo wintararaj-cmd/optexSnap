@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Order } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function OrdersPage() {
+function OrdersContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -198,5 +198,17 @@ export default function OrdersPage() {
                 )}
             </div>
         </main>
+    );
+}
+
+export default function OrdersPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+                <div className="spinner"></div>
+            </div>
+        }>
+            <OrdersContent />
+        </Suspense>
     );
 }
