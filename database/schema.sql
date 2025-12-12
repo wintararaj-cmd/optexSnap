@@ -231,7 +231,7 @@ CREATE INDEX IF NOT EXISTS idx_payouts_date ON payouts(payout_date);
 -- Insert default admin user (password: admin123)
 -- Note: This is a bcrypt hash of 'admin123'
 INSERT INTO users (email, password_hash, name, role) 
-VALUES ('admin@restaurant.com', '$2a$10$rKvVPZqGJf5YqH5YqH5YqOqH5YqH5YqH5YqH5YqH5YqH5YqH5Yq', 'Admin', 'admin')
+VALUES ('admin@restaurant.com', '$2a$10$g/BDopkmH4ApGpJfgmCXMe4fgAgWIBlmzU3shxVX9ebmdgb6.d6im', 'Admin', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
 -- Insert default categories
