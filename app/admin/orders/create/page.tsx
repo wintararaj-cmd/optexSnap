@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MenuItem {
     id: number;
@@ -28,167 +29,112 @@ interface DeliveryLocation {
 
 export default function CreateOrderPage() {
     const router = useRouter();
+    const { user } = useAuth();
+
+    // Data
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-    const [cart, setCart] = useState<CartItem[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [deliveryLocations, setDeliveryLocations] = useState<DeliveryLocation[]>([]);
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
+
+    // Filter UI
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
 
-    // Customer details
+    // Order State
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [submitting, setSubmitting] = useState(false);
+
+    const [orderType, setOrderType] = useState<'takeaway' | 'delivery' | 'dine-in'>('takeaway');
+    const [tableNumber, setTableNumber] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
-    const [orderType, setOrderType] = useState<'takeaway' | 'delivery' | 'dine-in'>('takeaway');
+    const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [notes, setNotes] = useState('');
-    const [tableNumber, setTableNumber] = useState('');
-
-    // Delivery location
-    const [deliveryLocations, setDeliveryLocations] = useState<DeliveryLocation[]>([]);
-    const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-
-
-
-    const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-            router.push('/admin');
-            return;
-        }
+        const loadData = async () => {
+            try {
+                // Fetch Menu
+                const menuRes = await fetch('/api/menu?available=true');
+                const menuData = await menuRes.json();
+                if (menuData.success) {
+                    setMenuItems(menuData.data);
+                    const cats = Array.from(new Set(menuData.data.map((i: MenuItem) => i.category_name).filter(Boolean))) as string[];
+                    setCategories(['all', ...cats]);
+                }
 
-        // Fetch settings
-        fetch('/api/settings')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) setSettings(data.data);
-            })
-            .catch(err => console.error('Error fetching settings:', err));
-
-        fetchMenuItems();
-        fetchDeliveryLocations();
-    }, []); // Empty dependency - only run on mount
-
-    const fetchDeliveryLocations = async () => {
-        try {
-            const response = await fetch('/api/admin/delivery-locations?active=true');
-            const data = await response.json();
-            if (data.success) {
-                setDeliveryLocations(data.data);
+                // Fetch Locations
+                const locRes = await fetch('/api/admin/delivery-locations?active=true');
+                const locData = await locRes.json();
+                if (locData.success) {
+                    setDeliveryLocations(locData.data);
+                }
+            } catch (error) {
+                console.error("Error loading data", error);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error('Error fetching delivery locations:', error);
-        }
-    };
-
-    const fetchMenuItems = async () => {
-        try {
-            const response = await fetch('/api/menu?available=true');
-            const data = await response.json();
-            if (data.success) {
-                setMenuItems(data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching menu items:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const categories = ['all', ...Array.from(new Set(menuItems.map(item => item.category_name).filter(Boolean)))];
+        };
+        loadData();
+    }, []);
 
     const filteredItems = menuItems.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === 'all' || item.category_name === selectedCategory;
         return matchesSearch && matchesCategory;
     });
 
     const addToCart = (item: MenuItem) => {
-        const existingItem = cart.find(ci => ci.menuItem.id === item.id);
-        if (existingItem) {
-            setCart(cart.map(ci =>
-                ci.menuItem.id === item.id
-                    ? { ...ci, quantity: ci.quantity + 1 }
-                    : ci
-            ));
+        const existing = cart.find(ci => ci.menuItem.id === item.id);
+        if (existing) {
+            setCart(cart.map(ci => ci.menuItem.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci));
         } else {
             setCart([...cart, { menuItem: item, quantity: 1 }]);
         }
     };
 
-    const updateQuantity = (itemId: number, quantity: number) => {
-        if (quantity <= 0) {
+    const updateQuantity = (itemId: number, delta: number) => {
+        const existing = cart.find(ci => ci.menuItem.id === itemId);
+        if (!existing) return;
+
+        const newQty = existing.quantity + delta;
+        if (newQty <= 0) {
             setCart(cart.filter(ci => ci.menuItem.id !== itemId));
         } else {
-            setCart(cart.map(ci =>
-                ci.menuItem.id === itemId ? { ...ci, quantity } : ci
-            ));
+            setCart(cart.map(ci => ci.menuItem.id === itemId ? { ...ci, quantity: newQty } : ci));
         }
     };
 
-    const removeFromCart = (itemId: number) => {
-        setCart(cart.filter(ci => ci.menuItem.id !== itemId));
-    };
+    // Calculations
+    const calculateSubtotal = () => cart.reduce((sum, item) => sum + (Number(item.menuItem.price) * item.quantity), 0);
 
-    const calculateSubtotal = () => {
-        return cart.reduce((sum, item) => sum + (parseFloat(item.menuItem.price.toString()) * item.quantity), 0);
-    };
-
-    const calculateTax = () => {
-        if (settings?.gstType !== 'regular') return 0;
-
-        // Calculate GST based on individual item rates
-        return cart.reduce((sum, item) => {
-            const itemPrice = parseFloat(item.menuItem.price.toString());
-            const gstRate = (item.menuItem.gst_rate || 5) / 100; // Convert percentage to decimal
-            const itemTax = itemPrice * item.quantity * gstRate;
-            return sum + itemTax;
-        }, 0);
-    };
+    const calculateTax = () => cart.reduce((sum, item) => {
+        const taxRate = (item.menuItem.gst_rate || 5) / 100;
+        return sum + (Number(item.menuItem.price) * item.quantity * taxRate);
+    }, 0);
 
     const getDeliveryCharge = () => {
         if (orderType !== 'delivery' || !selectedLocationId) return 0;
         const location = deliveryLocations.find(loc => loc.id === selectedLocationId);
-        return location ? parseFloat(location.delivery_charge.toString()) : 0;
+        return location ? Number(location.delivery_charge) : 0;
     };
 
-    const calculateTotal = () => {
-        return calculateSubtotal() + calculateTax() + getDeliveryCharge();
-    };
+    const grandTotal = calculateSubtotal() + calculateTax() + getDeliveryCharge();
 
     const handleSubmitOrder = async () => {
-        // Validation for Dine-in
-        if (orderType === 'dine-in' && !tableNumber) {
-            alert('Please provide Table Number for Dine-in');
-            return;
+        // Validation
+        if (orderType === 'dine-in' && !tableNumber) return alert('Please provide Table Number for Dine-in');
+        if (orderType === 'delivery') {
+            if (!customerName || !customerPhone) return alert('Customer Name and Phone required for Delivery');
+            if (!customerAddress) return alert('Delivery Address required');
+            if (!selectedLocationId) return alert('Delivery Location required');
         }
-
-        // Customer details ONLY required for delivery
-        if (orderType === 'delivery' && (!customerName || !customerPhone)) {
-            alert('Please provide customer name and phone number for delivery orders');
-            return;
-        }
-
-        if (orderType === 'delivery' && !customerAddress) {
-            alert('Please provide delivery address');
-            return;
-        }
-
-        if (orderType === 'delivery' && !selectedLocationId) {
-            alert('Please select a delivery location');
-            return;
-        }
-
-        if (cart.length === 0) {
-            alert('Please add items to the order');
-            return;
-        }
+        if (cart.length === 0) return alert('Cart is empty');
 
         setSubmitting(true);
-
         try {
             const orderData = {
                 customer_name: customerName,
@@ -201,330 +147,159 @@ export default function CreateOrderPage() {
                 discount: 0,
                 delivery_location_id: orderType === 'delivery' ? selectedLocationId : null,
                 delivery_charge: getDeliveryCharge(),
-                total_amount: calculateTotal(),
+                total_amount: grandTotal,
                 payment_method: paymentMethod,
                 notes: notes || null,
                 table_number: orderType === 'dine-in' ? tableNumber : null,
             };
 
-            const response = await fetch('/api/orders', {
+            const res = await fetch('/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData),
             });
-
-            const data = await response.json();
+            const data = await res.json();
 
             if (data.success) {
-                alert(`Order created successfully! Invoice: ${data.data.invoice_number}`);
+                alert(`Order Created! Invoice: ${data.data.invoice_number}`);
                 router.push('/admin/orders');
             } else {
-                alert(`Failed to create order: ${data.error}`);
+                alert(`Failed: ${data.error}`);
             }
         } catch (error) {
-            console.error('Error creating order:', error);
-            alert('An error occurred while creating the order');
+            console.error(error);
+            alert('Error creating order');
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loading) {
-        return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-                <div className="spinner"></div>
-            </div>
-        );
-    }
+    if (loading) return <div className="text-center p-5">Loading...</div>;
 
     return (
-        <main className="container" style={{ padding: '2rem 1.5rem' }}>
-            <div className="fade-in">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                    <h1>Create New Order</h1>
-                    <button onClick={() => router.push('/admin/orders')} className="btn btn-ghost">
-                        ← Back to Orders
-                    </button>
-                </div>
+        <main className="container" style={{ padding: '2rem 1.5rem', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h1>Create Order</h1>
+                <button onClick={() => router.push('/admin/orders')} className="btn btn-ghost">← Back to Orders</button>
+            </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem' }}>
-                    {/* Menu Items Section */}
-                    <div>
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <input
-                                type="text"
-                                placeholder="Search menu items..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="input"
-                                style={{ marginBottom: '1rem' }}
-                            />
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setSelectedCategory(cat)}
-                                        className={selectedCategory === cat ? 'btn btn-primary' : 'btn btn-ghost'}
-                                        style={{ padding: '0.5rem 1rem', textTransform: 'capitalize' }}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div key={`${selectedCategory}-${searchQuery}`} style={{ display: 'grid', gap: '1rem' }}>
-                            {filteredItems.map(item => {
-                                const price = parseFloat(item.price);
-                                return (
-                                    <div key={item.id} className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <h3 style={{ marginBottom: '0.25rem' }}>{item.name}</h3>
-                                            <p className="text-muted" style={{ fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                                                {item.description}
-                                            </p>
-                                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
-                                                    ₹{price.toFixed(2)}
-                                                </span>
-                                                <span className="badge">{item.category_name}</span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => addToCart(item)}
-                                            className="btn btn-primary"
-                                            style={{ minWidth: '100px' }}
-                                        >
-                                            Add to Cart
-                                        </button>
-                                    </div>
-                                );
-                            })}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: '2rem' }}>
+                {/* LEFT: Menu */}
+                <div>
+                    <div className="glass-card" style={{ marginBottom: '1.5rem', padding: '1rem' }}>
+                        <input
+                            className="input"
+                            placeholder="Search items..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            style={{ marginBottom: '1rem' }}
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`btn ${selectedCategory === cat ? 'btn-primary' : 'btn-ghost'}`}
+                                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textTransform: 'capitalize' }}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Order Summary & Customer Details Section */}
-                    <div style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
-                        <div className="glass-card" style={{ marginBottom: '1rem' }}>
-                            <h2 style={{ marginBottom: '1rem' }}>Order Summary</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                        {filteredItems.map(item => (
+                            <div key={item.id} className="glass-card" style={{ padding: '1rem', cursor: 'pointer', transition: '0.2s', display: 'flex', flexDirection: 'column', gap: '0.5rem' }} onClick={() => addToCart(item)}>
+                                <h4 style={{ margin: 0 }}>{item.name}</h4>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>₹{Number(item.price).toFixed(0)}</span>
+                                    <div style={{ width: '24px', height: '24px', background: 'var(--primary)', borderRadius: '50%', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>+</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
-                            {cart.length === 0 ? (
-                                <p className="text-muted text-center" style={{ padding: '2rem 0' }}>
-                                    No items in cart
-                                </p>
-                            ) : (
-                                <>
-                                    <div style={{ marginBottom: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
-                                        {cart.map(item => {
-                                            const price = parseFloat(item.menuItem.price);
-                                            return (
-                                                <div key={item.menuItem.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 500 }}>{item.menuItem.name}</div>
-                                                        <div className="text-muted" style={{ fontSize: '0.875rem' }}>
-                                                            ₹{price.toFixed(2)} × {item.quantity}
-                                                        </div>
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
-                                                            className="btn btn-ghost"
-                                                            style={{ padding: '0.25rem 0.5rem', minWidth: 'auto' }}
-                                                        >
-                                                            −
-                                                        </button>
-                                                        <span style={{ minWidth: '30px', textAlign: 'center' }}>{item.quantity}</span>
-                                                        <button
-                                                            onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
-                                                            className="btn btn-ghost"
-                                                            style={{ padding: '0.25rem 0.5rem', minWidth: 'auto' }}
-                                                        >
-                                                            +
-                                                        </button>
-                                                        <button
-                                                            onClick={() => removeFromCart(item.menuItem.id)}
-                                                            className="btn btn-ghost"
-                                                            style={{ padding: '0.25rem 0.5rem', minWidth: 'auto', color: 'var(--danger)' }}
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                {/* RIGHT: Invoice Form */}
+                <div style={{ position: 'sticky', top: '1rem' }}>
+                    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: 'fit-content', maxHeight: 'calc(100vh - 4rem)' }}>
+                        <h2 style={{ marginBottom: '1rem', textAlign: 'center', fontFamily: 'serif' }}>Current Order</h2>
 
-                                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span>Subtotal:</span>
-                                            <span>₹{calculateSubtotal().toFixed(2)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <span>Tax (GST):</span>
-                                            <span>₹{calculateTax().toFixed(2)}</span>
-                                        </div>
-                                        {orderType === 'delivery' && getDeliveryCharge() > 0 && (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                                <span>Delivery Charge:</span>
-                                                <span>₹{getDeliveryCharge().toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 700, color: 'var(--primary)' }}>
-                                            <span>Total:</span>
-                                            <span>₹{calculateTotal().toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+                        {/* Order Type Selector */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.25rem', marginBottom: '1rem' }}>
+                            {(['dine-in', 'takeaway', 'delivery'] as const).map(type => (
+                                <button
+                                    key={type}
+                                    onClick={() => setOrderType(type)}
+                                    className={`btn ${orderType === type ? 'btn-primary' : 'btn-ghost'}`}
+                                    style={{ padding: '0.5rem', fontSize: '0.8rem', textTransform: 'capitalize' }}
+                                >
+                                    {type}
+                                </button>
+                            ))}
                         </div>
 
-                        <div className="glass-card">
-                            <h3 style={{ marginBottom: '1rem' }}>Customer Details</h3>
-
+                        {/* Contextual Inputs */}
+                        {orderType === 'dine-in' && (
                             <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Order Type
-                                </label>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                                    <button
-                                        onClick={() => setOrderType('dine-in')}
-                                        className={orderType === 'dine-in' ? 'btn btn-primary' : 'btn btn-ghost'}
-                                    >
-                                        Dine-in
-                                    </button>
-                                    <button
-                                        onClick={() => setOrderType('takeaway')}
-                                        className={orderType === 'takeaway' ? 'btn btn-primary' : 'btn btn-ghost'}
-                                    >
-                                        Takeaway
-                                    </button>
-                                    <button
-                                        onClick={() => setOrderType('delivery')}
-                                        className={orderType === 'delivery' ? 'btn btn-primary' : 'btn btn-ghost'}
-                                    >
-                                        Delivery
-                                    </button>
-                                </div>
+                                <input className="input" placeholder="Table Number (e.g. T-5)" value={tableNumber} onChange={e => setTableNumber(e.target.value)} />
                             </div>
-
-                            {orderType === 'dine-in' && (
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                        Table Number *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={tableNumber}
-                                        onChange={(e) => setTableNumber(e.target.value)}
-                                        className="input"
-                                        placeholder="e.g. T-5"
-                                        required
-                                    />
-                                </div>
-                            )}
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Customer Name {orderType === 'delivery' ? '*' : '(Optional)'}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={customerName}
-                                    onChange={(e) => setCustomerName(e.target.value)}
-                                    className="input"
-                                    placeholder={orderType === 'delivery' ? "Enter customer name" : "Enter customer name (optional)"}
-                                    required={orderType === 'delivery'}
-                                    style={{ borderColor: orderType === 'delivery' && !customerName ? 'var(--danger)' : undefined }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Phone Number {orderType === 'delivery' ? '*' : '(Optional)'}
-                                </label>
-                                <input
-                                    type="tel"
-                                    value={customerPhone}
-                                    onChange={(e) => setCustomerPhone(e.target.value)}
-                                    className="input"
-                                    placeholder={orderType === 'delivery' ? "Enter phone number" : "Enter phone number (optional)"}
-                                    required={orderType === 'delivery'}
-                                    pattern="[0-9]{10}"
-                                    title="Please enter a valid 10-digit phone number"
-                                    style={{ borderColor: orderType === 'delivery' && !customerPhone ? 'var(--danger)' : undefined }}
-                                />
-                            </div>
-
-                            {orderType === 'delivery' && (
-                                <>
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                            Delivery Location *
-                                        </label>
-                                        <select
-                                            value={selectedLocationId || ''}
-                                            onChange={(e) => setSelectedLocationId(e.target.value ? parseInt(e.target.value) : null)}
-                                            className="input"
-                                        >
-                                            <option value="">Select delivery location</option>
-                                            {deliveryLocations.map(loc => (
-                                                <option key={loc.id} value={loc.id}>
-                                                    {loc.location_name} - ₹{parseFloat(loc.delivery_charge.toString()).toFixed(2)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                            Delivery Address *
-                                        </label>
-                                        <textarea
-                                            value={customerAddress}
-                                            onChange={(e) => setCustomerAddress(e.target.value)}
-                                            className="input"
-                                            placeholder="Enter delivery address"
-                                            rows={3}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Payment Method
-                                </label>
-                                <select
-                                    value={paymentMethod}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="input"
-                                >
-                                    <option value="cash">Cash</option>
-                                    <option value="card">Card</option>
-                                    <option value="upi">UPI</option>
-                                    <option value="wallet">Wallet</option>
+                        )}
+                        {orderType === 'delivery' && (
+                            <div style={{ display: 'grid', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <select className="input" value={selectedLocationId || ''} onChange={e => setSelectedLocationId(Number(e.target.value))}>
+                                    <option value="">Select Location</option>
+                                    {deliveryLocations.map(l => (
+                                        <option key={l.id} value={l.id}>{l.location_name} (+₹{l.delivery_charge})</option>
+                                    ))}
                                 </select>
+                                <textarea className="input" placeholder="Delivery Address" rows={2} value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
+                            </div>
+                        )}
+
+                        {/* Cart List */}
+                        <div style={{ flex: 1, overflowY: 'auto', minHeight: '150px', marginBottom: '1rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.5rem 0' }}>
+                            {cart.length === 0 ? <p className="text-muted text-center py-5">Empty Cart</p> : cart.map(item => (
+                                <div key={item.menuItem.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <div style={{ flex: 1 }}>{item.menuItem.name} <br /><span className="text-muted text-sm">₹{item.menuItem.price} x {item.quantity}</span></div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <button className="btn btn-ghost px-2" onClick={(e) => { e.stopPropagation(); updateQuantity(item.menuItem.id, -1) }}>-</button>
+                                        <span>{item.quantity}</span>
+                                        <button className="btn btn-ghost px-2" onClick={(e) => { e.stopPropagation(); addToCart(item.menuItem) }}>+</button>
+                                    </div>
+                                    <div style={{ minWidth: '50px', textAlign: 'right', fontWeight: 'bold' }}>₹{(item.menuItem.price * item.quantity).toFixed(0)}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Totals & Footer */}
+                        <div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                <input className="input" placeholder="Cust. Name" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                                <input className="input" placeholder="Phone" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} type="tel" />
                             </div>
 
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Notes (Optional)
-                                </label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    className="input"
-                                    placeholder="Special instructions..."
-                                    rows={2}
-                                />
+                            <select className="input mb-3" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                                <option value="cash">Cash</option>
+                                <option value="card">Card</option>
+                                <option value="upi">UPI</option>
+                            </select>
+
+                            {orderType === 'delivery' && selectedLocationId && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', fontSize: '0.9rem' }}>
+                                    <span>Delivery Charge:</span>
+                                    <span>₹{getDeliveryCharge()}</span>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                                <span>Total:</span>
+                                <span>₹{grandTotal.toFixed(2)}</span>
                             </div>
 
-                            <button
-                                onClick={handleSubmitOrder}
-                                disabled={submitting || cart.length === 0}
-                                className="btn btn-primary"
-                                style={{ width: '100%' }}
-                            >
-                                {submitting ? 'Creating Order...' : 'Create Order'}
+                            <button onClick={handleSubmitOrder} className="btn btn-primary w-full" disabled={submitting}>
+                                {submitting ? 'Creating...' : 'Create Order'}
                             </button>
                         </div>
                     </div>
