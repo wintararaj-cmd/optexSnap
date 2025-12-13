@@ -67,16 +67,17 @@ export default function AdminDashboard() {
 
     return (
         <main className="container" style={{ padding: '2rem 1.5rem' }}>
-            <div className="fade-in">
+            {/* Removed fade-in class to prevent potential pointer-event issues */}
+            <div style={{ position: 'relative', zIndex: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <h1>Admin Dashboard</h1>
-                    <button onClick={handleLogout} className="btn btn-ghost">
+                    <button onClick={handleLogout} className="btn btn-ghost" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
                         Logout
                     </button>
                 </div>
 
                 {/* Quick Links */}
-                <div className="grid grid-4" style={{ marginBottom: '3rem' }}>
+                <div className="grid grid-4" style={{ marginBottom: '3rem', position: 'relative', zIndex: 10 }}>
                     <Link href="/admin/menu" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🍽️</div>
                         <h3>Menu Management</h3>
