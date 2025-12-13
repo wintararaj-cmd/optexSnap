@@ -75,8 +75,18 @@ export async function GET() {
 
         return NextResponse.json({ success: true, data });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching payout report:', error);
-        return NextResponse.json({ success: false, error: 'Failed to fetch report' }, { status: 500 });
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            hint: error.hint
+        });
+        return NextResponse.json({
+            success: false,
+            error: 'Failed to fetch report',
+            details: error.message
+        }, { status: 500 });
     }
 }
