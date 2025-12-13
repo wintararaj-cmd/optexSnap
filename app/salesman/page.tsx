@@ -209,8 +209,8 @@ export default function SalesmanDashboard() {
 
                     /* Menu Grid Adjustments for Mobile */
                     .menu-grid {
-                        grid-template-columns: repeat(2, 1fr) !important; /* 2 cols */
-                        gap: 0.5rem !important;
+                        grid-template-columns: 1fr !important; /* Single column */
+                        gap: 0.75rem !important;
                     }
                     
                     /* The Overlay */
