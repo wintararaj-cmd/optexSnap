@@ -56,7 +56,7 @@ export default function PayoutsPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    delivery_boy_id: selectedBoy.id,
+                    user_id: selectedBoy.id,
                     amount: parseFloat(payAmount),
                     notes
                 })
