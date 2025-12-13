@@ -70,19 +70,27 @@ export async function POST(request: Request) {
         } = body;
 
         // Validate required fields
-        if (!customer_name || !customer_phone || !items || !total_amount || !payment_method) {
+        if (!items || !total_amount || !payment_method) {
             return NextResponse.json(
                 { success: false, error: 'Missing required fields' },
                 { status: 400 }
             );
         }
 
-        // For delivery orders, address is required
-        if (order_type === 'delivery' && !customer_address) {
-            return NextResponse.json(
-                { success: false, error: 'Address is required for delivery orders' },
-                { status: 400 }
-            );
+        // For delivery orders, customer details and address are required
+        if (order_type === 'delivery') {
+            if (!customer_name || !customer_phone) {
+                return NextResponse.json(
+                    { success: false, error: 'Customer name and phone are required for delivery orders' },
+                    { status: 400 }
+                );
+            }
+            if (!customer_address) {
+                return NextResponse.json(
+                    { success: false, error: 'Address is required for delivery orders' },
+                    { status: 400 }
+                );
+            }
         }
 
         const result = await query(
@@ -91,8 +99,8 @@ export async function POST(request: Request) {
        RETURNING *`,
             [
                 user_id || null,
-                customer_name,
-                customer_phone,
+                customer_name || 'Walk-in Customer',
+                customer_phone || 'N/A',
                 customer_address || null,
                 order_type || 'delivery',
                 JSON.stringify(items),

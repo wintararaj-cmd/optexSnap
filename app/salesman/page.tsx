@@ -121,10 +121,10 @@ export default function SalesmanDashboard() {
             return;
         }
 
-        // Name/Phone optional for quick dine-in? Usually required for DB orders table constraints. 
-        // Schema says NOT NULL. So must ask.
-        if (!customerName || !customerPhone) {
-            alert('Please provide customer name and phone number');
+        // Customer details only required for delivery orders
+        // For dine-in/takeaway, they're optional
+        if (orderType === 'delivery' && (!customerName || !customerPhone)) {
+            alert('Please provide customer name and phone number for delivery orders');
             return;
         }
 
@@ -283,21 +283,21 @@ export default function SalesmanDashboard() {
                             <div style={{ marginBottom: '1rem' }}>
                                 <input
                                     type="text"
-                                    placeholder="Customer Name *"
+                                    placeholder={orderType === 'delivery' ? 'Customer Name *' : 'Customer Name (Optional)'}
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     className="input mb-1"
-                                    style={{ padding: '0.5rem', borderColor: !customerName ? 'var(--danger)' : undefined }}
-                                    required
+                                    style={{ padding: '0.5rem', borderColor: orderType === 'delivery' && !customerName ? 'var(--danger)' : undefined }}
+                                    required={orderType === 'delivery'}
                                 />
                                 <input
                                     type="tel"
-                                    placeholder="Phone *"
+                                    placeholder={orderType === 'delivery' ? 'Phone *' : 'Phone (Optional)'}
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
                                     className="input"
-                                    style={{ padding: '0.5rem', borderColor: !customerPhone ? 'var(--danger)' : undefined }}
-                                    required
+                                    style={{ padding: '0.5rem', borderColor: orderType === 'delivery' && !customerPhone ? 'var(--danger)' : undefined }}
+                                    required={orderType === 'delivery'}
                                     pattern="[0-9]{10}"
                                     title="Please enter a valid 10-digit phone number"
                                 />

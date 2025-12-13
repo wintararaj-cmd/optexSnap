@@ -36,8 +36,7 @@ DB_USER=postgres
 DB_PASSWORD=your_password_here
 
 # Application
-NODE_ENV=development
-NEXT_PUBLIC_API_URL=http://localhost:3000
+
 
 # JWT Secret
 JWT_SECRET=your_jwt_secret_key_here

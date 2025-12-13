@@ -81,9 +81,9 @@ CREATE TABLE IF NOT EXISTS delivery_locations (
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    customer_name VARCHAR(255) NOT NULL,
+    customer_name VARCHAR(255), -- Optional for walk-in dine-in/takeaway orders
     customer_email VARCHAR(255),
-    customer_phone VARCHAR(20) NOT NULL,
+    customer_phone VARCHAR(20), -- Optional for walk-in dine-in/takeaway orders
     customer_address TEXT,
     order_type VARCHAR(20) DEFAULT 'delivery', -- 'takeaway', 'delivery', 'dine-in'
     table_number VARCHAR(20), -- For dine-in orders
