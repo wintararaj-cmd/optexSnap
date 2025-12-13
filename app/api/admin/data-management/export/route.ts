@@ -56,19 +56,16 @@ export async function GET(request: NextRequest) {
                         c.name as category_name, m.price, m.gst_rate, 
                         m.available,
                         CASE 
-                            WHEN i.image_data IS NOT NULL THEN encode(i.image_data, 'base64')
                             WHEN m.image_data IS NOT NULL THEN encode(m.image_data, 'base64')
                             ELSE NULL
                         END as image_data_base64,
-                        COALESCE(i.image_type, m.image_type) as image_type,
+                        m.image_type,
                         CASE 
-                            WHEN i.image_data IS NOT NULL THEN length(i.image_data)
                             WHEN m.image_data IS NOT NULL THEN length(m.image_data)
                             ELSE 0
                         END as image_size
                     FROM menu_items m
                     LEFT JOIN categories c ON m.category_id = c.id
-                    LEFT JOIN images i ON m.image_id = i.id
                     ORDER BY m.id
                 `;
                 headers = ['name', 'description', 'category_id', 'category_name', 'price', 'gst_rate', 'available', 'image_data_base64', 'image_type', 'image_size'];
