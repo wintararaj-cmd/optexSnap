@@ -402,6 +402,8 @@ export default function CreateOrderPage() {
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     className="input"
                                     placeholder="Enter customer name"
+                                    required
+                                    style={{ borderColor: !customerName ? 'var(--danger)' : undefined }}
                                 />
                             </div>
 
@@ -415,6 +417,10 @@ export default function CreateOrderPage() {
                                     onChange={(e) => setCustomerPhone(e.target.value)}
                                     className="input"
                                     placeholder="Enter phone number"
+                                    required
+                                    pattern="[0-9]{10}"
+                                    title="Please enter a valid 10-digit phone number"
+                                    style={{ borderColor: !customerPhone ? 'var(--danger)' : undefined }}
                                 />
                             </div>
 

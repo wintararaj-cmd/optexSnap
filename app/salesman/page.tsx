@@ -283,19 +283,23 @@ export default function SalesmanDashboard() {
                             <div style={{ marginBottom: '1rem' }}>
                                 <input
                                     type="text"
-                                    placeholder="Customer Name"
+                                    placeholder="Customer Name *"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     className="input mb-1"
-                                    style={{ padding: '0.5rem' }}
+                                    style={{ padding: '0.5rem', borderColor: !customerName ? 'var(--danger)' : undefined }}
+                                    required
                                 />
                                 <input
                                     type="tel"
-                                    placeholder="Phone"
+                                    placeholder="Phone *"
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
                                     className="input"
-                                    style={{ padding: '0.5rem' }}
+                                    style={{ padding: '0.5rem', borderColor: !customerPhone ? 'var(--danger)' : undefined }}
+                                    required
+                                    pattern="[0-9]{10}"
+                                    title="Please enter a valid 10-digit phone number"
                                 />
                             </div>
 
