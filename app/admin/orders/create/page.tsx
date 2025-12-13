@@ -39,9 +39,10 @@ export default function CreateOrderPage() {
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
-    const [orderType, setOrderType] = useState<'takeaway' | 'delivery'>('takeaway');
+    const [orderType, setOrderType] = useState<'takeaway' | 'delivery' | 'dine-in'>('takeaway');
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [notes, setNotes] = useState('');
+    const [tableNumber, setTableNumber] = useState('');
 
     // Delivery location
     const [deliveryLocations, setDeliveryLocations] = useState<DeliveryLocation[]>([]);
@@ -159,8 +160,15 @@ export default function CreateOrderPage() {
     };
 
     const handleSubmitOrder = async () => {
-        if (!customerName || !customerPhone) {
-            alert('Please provide customer name and phone number');
+        // Validation for Dine-in
+        if (orderType === 'dine-in' && !tableNumber) {
+            alert('Please provide Table Number for Dine-in');
+            return;
+        }
+
+        // Customer details ONLY required for delivery
+        if (orderType === 'delivery' && (!customerName || !customerPhone)) {
+            alert('Please provide customer name and phone number for delivery orders');
             return;
         }
 
@@ -196,6 +204,7 @@ export default function CreateOrderPage() {
                 total_amount: calculateTotal(),
                 payment_method: paymentMethod,
                 notes: notes || null,
+                table_number: orderType === 'dine-in' ? tableNumber : null,
             };
 
             const response = await fetch('/api/orders', {
@@ -376,7 +385,13 @@ export default function CreateOrderPage() {
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
                                     Order Type
                                 </label>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                                    <button
+                                        onClick={() => setOrderType('dine-in')}
+                                        className={orderType === 'dine-in' ? 'btn btn-primary' : 'btn btn-ghost'}
+                                    >
+                                        Dine-in
+                                    </button>
                                     <button
                                         onClick={() => setOrderType('takeaway')}
                                         className={orderType === 'takeaway' ? 'btn btn-primary' : 'btn btn-ghost'}
@@ -392,35 +407,51 @@ export default function CreateOrderPage() {
                                 </div>
                             </div>
 
+                            {orderType === 'dine-in' && (
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        Table Number *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={tableNumber}
+                                        onChange={(e) => setTableNumber(e.target.value)}
+                                        className="input"
+                                        placeholder="e.g. T-5"
+                                        required
+                                    />
+                                </div>
+                            )}
+
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Customer Name *
+                                    Customer Name {orderType === 'delivery' ? '*' : '(Optional)'}
                                 </label>
                                 <input
                                     type="text"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     className="input"
-                                    placeholder="Enter customer name"
-                                    required
-                                    style={{ borderColor: !customerName ? 'var(--danger)' : undefined }}
+                                    placeholder={orderType === 'delivery' ? "Enter customer name" : "Enter customer name (optional)"}
+                                    required={orderType === 'delivery'}
+                                    style={{ borderColor: orderType === 'delivery' && !customerName ? 'var(--danger)' : undefined }}
                                 />
                             </div>
 
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
-                                    Phone Number *
+                                    Phone Number {orderType === 'delivery' ? '*' : '(Optional)'}
                                 </label>
                                 <input
                                     type="tel"
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
                                     className="input"
-                                    placeholder="Enter phone number"
-                                    required
+                                    placeholder={orderType === 'delivery' ? "Enter phone number" : "Enter phone number (optional)"}
+                                    required={orderType === 'delivery'}
                                     pattern="[0-9]{10}"
                                     title="Please enter a valid 10-digit phone number"
-                                    style={{ borderColor: !customerPhone ? 'var(--danger)' : undefined }}
+                                    style={{ borderColor: orderType === 'delivery' && !customerPhone ? 'var(--danger)' : undefined }}
                                 />
                             </div>
 
