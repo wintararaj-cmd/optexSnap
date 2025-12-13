@@ -9,7 +9,7 @@ export async function GET(request: Request) {
         const available = searchParams.get('available');
 
         let queryText = `
-            SELECT DISTINCT ON (m.id)
+            SELECT 
                 m.id, 
                 m.name, 
                 m.description, 
@@ -17,14 +17,13 @@ export async function GET(request: Request) {
                 c.name as category_name,
                 m.price, 
                 m.gst_rate,
+                m.image_data,
                 m.image_type, 
                 m.available, 
                 m.created_at, 
-                m.updated_at,
-                i.id as image_id
+                m.updated_at
             FROM menu_items m
             LEFT JOIN categories c ON m.category_id = c.id
-            LEFT JOIN images i ON m.image_data = i.image_data AND m.image_type = i.image_type
             WHERE 1=1
         `;
         const params: any[] = [];
@@ -42,13 +41,22 @@ export async function GET(request: Request) {
             paramCount++;
         }
 
-        queryText += ' ORDER BY m.id, c.sort_order, c.name, m.name, i.id DESC';
+        queryText += ' ORDER BY c.sort_order, c.name, m.name';
 
         const result = await query(queryText, params);
 
+        // Convert image_data to base64 for frontend
+        const menuItems = result.rows.map(item => ({
+            ...item,
+            image_url: item.image_data && item.image_type
+                ? `data:${item.image_type};base64,${item.image_data.toString('base64')}`
+                : null,
+            image_data: undefined // Remove raw binary data from response
+        }));
+
         return NextResponse.json({
             success: true,
-            data: result.rows,
+            data: menuItems,
         });
     } catch (error) {
         console.error('Error fetching menu items:', error);
@@ -63,7 +71,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, description, category_id, price, gst_rate, image_id, image_type, available } = body;
+        const { name, description, category_id, price, gst_rate, image_data, image_type, available } = body;
 
         if (!name || !category_id || !price) {
             return NextResponse.json(
@@ -84,26 +92,19 @@ export async function POST(request: Request) {
             );
         }
 
-        // If image_id is provided, fetch the image data from images table
-        let imageData = null;
-        let imageType = image_type || null;
-
-        if (image_id) {
-            const imageResult = await query(
-                'SELECT image_data, image_type FROM images WHERE id = $1',
-                [image_id]
-            );
-            if (imageResult.rows.length > 0) {
-                imageData = imageResult.rows[0].image_data;
-                imageType = imageResult.rows[0].image_type;
-            }
+        // Convert base64 image to buffer if provided
+        let imageBuffer = null;
+        if (image_data && typeof image_data === 'string') {
+            // Remove data URL prefix if present
+            const base64Data = image_data.replace(/^data:image\/\w+;base64,/, '');
+            imageBuffer = Buffer.from(base64Data, 'base64');
         }
 
         const result = await query(
             `INSERT INTO menu_items (name, description, category_id, price, gst_rate, image_data, image_type, available)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, name, description, category_id, price, gst_rate, image_type, available, created_at, updated_at`,
-            [name, description, category_id, price, gst_rate || 5, imageData, imageType, available ?? true]
+            [name, description, category_id, price, gst_rate || 5, imageBuffer, image_type, available ?? true]
         );
 
         return NextResponse.json({
