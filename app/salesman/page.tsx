@@ -166,7 +166,7 @@ export default function SalesmanDashboard() {
     return (
         <main className="container" style={{ padding: '2rem 1.5rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '90px' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1>Salesman Dashboard</h1>
                     <p className="text-muted">Welcome, {user?.name}</p>
@@ -200,6 +200,11 @@ export default function SalesmanDashboard() {
                     .desktop-bill-panel { display: none !important; }
                     .mobile-only { display: block !important; }
                     
+                    /* Fix Main Grid to be single column on mobile */
+                    .responsive-grid {
+                        display: block !important;
+                    }
+
                     /* Menu Grid Adjustments for Mobile */
                     .menu-grid {
                         grid-template-columns: repeat(2, 1fr) !important; /* 2 cols */
@@ -238,7 +243,7 @@ export default function SalesmanDashboard() {
                             placeholder="Search items..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            style={{ marginBottom: '1rem' }}
+                            style={{ marginBottom: '1rem', width: '100%' }}
                         />
                         <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                             {categories.map(cat => (

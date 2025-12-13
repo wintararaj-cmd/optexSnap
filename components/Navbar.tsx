@@ -25,6 +25,11 @@ export default function Navbar() {
         }
     };
 
+    // Hide Navbar on specific POS-like pages
+    if (pathname?.startsWith('/salesman') || pathname?.startsWith('/admin/quick-bill')) {
+        return null;
+    }
+
     return (
         <nav className="navbar">
             <div className="container navbar-content">
