@@ -109,30 +109,13 @@ export async function POST(request: NextRequest) {
                                 }
                             }
 
-                            // Decode base64 image data if present and save to images table
-                            let imageId = null;
+                            // Decode base64 image data if present
+                            let imageData = null;
+                            let imageType = null;
                             if (item.image_data_base64 && item.image_data_base64.trim() !== '') {
                                 try {
-                                    const imageData = Buffer.from(item.image_data_base64, 'base64');
-                                    const imageType = item.image_type || 'image/jpeg';
-
-                                    // Check if this exact image already exists (to avoid duplicates)
-                                    const existingImage = await client.query(
-                                        'SELECT id FROM images WHERE image_data = $1 AND image_type = $2',
-                                        [imageData, imageType]
-                                    );
-
-                                    if (existingImage.rows.length > 0) {
-                                        // Use existing image
-                                        imageId = existingImage.rows[0].id;
-                                    } else {
-                                        // Insert new image
-                                        const imageResult = await client.query(
-                                            'INSERT INTO images (image_data, image_type) VALUES ($1, $2) RETURNING id',
-                                            [imageData, imageType]
-                                        );
-                                        imageId = imageResult.rows[0].id;
-                                    }
+                                    imageData = Buffer.from(item.image_data_base64, 'base64');
+                                    imageType = item.image_type || 'image/jpeg';
                                 } catch (error) {
                                     console.error('Error processing image for item:', item.name, error);
                                 }
@@ -153,16 +136,18 @@ export async function POST(request: NextRequest) {
                                      price = $3,
                                      gst_rate = $4,
                                      available = $5,
-                                     image_id = $6,
+                                     image_data = $6,
+                                     image_type = $7,
                                      updated_at = CURRENT_TIMESTAMP
-                                     WHERE name = $7`,
+                                     WHERE name = $8`,
                                     [
                                         item.description || '',
                                         categoryId || null,
                                         parseFloat(item.price) || 0,
                                         parseFloat(item.gst_rate) || 5.00,
                                         item.available === 'true' || item.available === true || item.available === '1',
-                                        imageId,
+                                        imageData,
+                                        imageType,
                                         item.name
                                     ]
                                 );
@@ -170,8 +155,8 @@ export async function POST(request: NextRequest) {
                             } else {
                                 // Insert new menu item
                                 await client.query(
-                                    `INSERT INTO menu_items (name, description, category_id, price, gst_rate, available, image_id)
-                                     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                                    `INSERT INTO menu_items (name, description, category_id, price, gst_rate, available, image_data, image_type)
+                                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                                     [
                                         item.name,
                                         item.description || '',
@@ -179,7 +164,8 @@ export async function POST(request: NextRequest) {
                                         parseFloat(item.price) || 0,
                                         parseFloat(item.gst_rate) || 5.00,
                                         item.available === 'true' || item.available === true || item.available === '1',
-                                        imageId
+                                        imageData,
+                                        imageType
                                     ]
                                 );
                                 imported++;
