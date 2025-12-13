@@ -128,6 +128,11 @@ export default function AdminDashboard() {
                         <h3>Commissions</h3>
                         <p className="text-muted">Payouts & Reports</p>
                     </Link>
+                    <Link href="/admin/quick-bill" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1, borderColor: 'var(--primary)', borderWidth: '2px' }}>
+                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🧾</div>
+                        <h3 style={{ color: 'var(--primary)' }}>Quick Bill</h3>
+                        <p className="text-muted">Create Invoice & Print</p>
+                    </Link>
                     <Link href="/admin/data-management" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📊</div>
                         <h3>Data Import/Export</h3>

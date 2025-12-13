@@ -67,6 +67,8 @@ export async function POST(request: Request) {
 
             notes,
             table_number,
+            order_status,
+            payment_status,
         } = body;
 
         // Validate required fields
@@ -94,8 +96,8 @@ export async function POST(request: Request) {
         }
 
         const result = await query(
-            `INSERT INTO orders (user_id, customer_name, customer_phone, customer_address, order_type, items, subtotal, tax, discount, delivery_location_id, delivery_charge, total_amount, payment_method, notes, table_number)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            `INSERT INTO orders (user_id, customer_name, customer_phone, customer_address, order_type, items, subtotal, tax, discount, delivery_location_id, delivery_charge, total_amount, payment_method, notes, table_number, order_status, payment_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
        RETURNING *`,
             [
                 user_id || null,
@@ -113,6 +115,8 @@ export async function POST(request: Request) {
                 payment_method,
                 notes || null,
                 table_number || null,
+                order_status || 'pending',
+                payment_status || 'pending',
             ]
         );
 
