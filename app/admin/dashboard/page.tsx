@@ -77,57 +77,57 @@ export default function AdminDashboard() {
 
                 {/* Quick Links */}
                 <div className="grid grid-4" style={{ marginBottom: '3rem' }}>
-                    <Link href="/admin/menu" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/menu" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🍽️</div>
                         <h3>Menu Management</h3>
                         <p className="text-muted">Add, edit, delete items</p>
                     </Link>
-                    <Link href="/admin/categories" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/categories" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🏷️</div>
                         <h3>Categories</h3>
                         <p className="text-muted">Manage menu categories</p>
                     </Link>
-                    <Link href="/admin/orders" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/orders" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</div>
                         <h3>Orders</h3>
                         <p className="text-muted">Manage all orders</p>
                     </Link>
-                    <Link href="/admin/analytics" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/analytics" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📊</div>
                         <h3>Analytics</h3>
                         <p className="text-muted">Charts & insights</p>
                     </Link>
-                    <Link href="/admin/billing" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/billing" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>💰</div>
                         <h3>Billing</h3>
                         <p className="text-muted">Invoices & reports</p>
                     </Link>
-                    <Link href="/admin/settings" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/settings" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>⚙️</div>
                         <h3>Settings</h3>
                         <p className="text-muted">Printer & restaurant info</p>
                     </Link>
-                    <Link href="/admin/salesmen" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/salesmen" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👨‍💼</div>
                         <h3>Salesmen</h3>
                         <p className="text-muted">Manage sales staff</p>
                     </Link>
-                    <Link href="/admin/delivery-boys" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/delivery-boys" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛵</div>
                         <h3>Delivery Boys</h3>
                         <p className="text-muted">Manage delivery staff</p>
                     </Link>
-                    <Link href="/admin/delivery-locations" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/delivery-locations" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📍</div>
                         <h3>Delivery Locations</h3>
                         <p className="text-muted">Manage delivery zones</p>
                     </Link>
-                    <Link href="/admin/payouts" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/payouts" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>💸</div>
                         <h3>Commissions</h3>
                         <p className="text-muted">Payouts & Reports</p>
                     </Link>
-                    <Link href="/admin/data-management" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/data-management" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📊</div>
                         <h3>Data Import/Export</h3>
                         <p className="text-muted">Backup & restore data</p>
@@ -137,17 +137,17 @@ export default function AdminDashboard() {
                 {/* Accounting Links */}
                 <h2 style={{ marginBottom: '1.5rem' }}>Accounting</h2>
                 <div className="grid grid-3" style={{ marginBottom: '3rem' }}>
-                    <Link href="/admin/sales" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/sales" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📊</div>
                         <h3>Sale Book</h3>
                         <p className="text-muted">View all sales transactions</p>
                     </Link>
-                    <Link href="/admin/cashbook" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/cashbook" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>💵</div>
                         <h3>Cash Book</h3>
                         <p className="text-muted">Track cash flow</p>
                     </Link>
-                    <Link href="/admin/gst-report" className="glass-card text-center" style={{ textDecoration: 'none' }}>
+                    <Link href="/admin/gst-report" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📈</div>
                         <h3>GST Report</h3>
                         <p className="text-muted">Tax breakdown & compliance</p>
