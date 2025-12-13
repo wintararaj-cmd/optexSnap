@@ -177,22 +177,24 @@ export default function SalesmanDashboard() {
             </div>
 
             {/* Mobile "View Bill" Sticky Button */}
-            <div className="mobile-only" style={{
-                position: 'fixed', bottom: '1rem', left: '1rem', right: '1rem', zIndex: 100,
-                display: 'none' // Hidden by default, shown via CSS
-            }}>
-                <button
-                    onClick={() => setShowCartMobile(true)}
-                    className="btn btn-primary"
-                    style={{
-                        width: '100%', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)', borderRadius: '12px', fontSize: '1.1rem'
-                    }}
-                >
-                    <span>{totalItems} Items</span>
-                    <span style={{ fontWeight: 'bold' }}>View Bill ₹{grandTotal.toFixed(0)}</span>
-                </button>
-            </div>
+            {!showCartMobile && (
+                <div className="mobile-only" style={{
+                    position: 'fixed', bottom: '1rem', left: '1rem', right: '1rem', zIndex: 100,
+                    display: 'none' // Hidden by default, shown via CSS
+                }}>
+                    <button
+                        onClick={() => setShowCartMobile(true)}
+                        className="btn btn-primary"
+                        style={{
+                            width: '100%', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)', borderRadius: '12px', fontSize: '1.1rem'
+                        }}
+                    >
+                        <span>{totalItems} Items</span>
+                        <span style={{ fontWeight: 'bold' }}>View Bill ₹{grandTotal.toFixed(0)}</span>
+                    </button>
+                </div>
+            )}
 
             {/* Styles for Mobile Responsive Layering */}
             <style jsx global>{`
@@ -215,7 +217,7 @@ export default function SalesmanDashboard() {
                     .mobile-bill-overlay {
                         position: fixed !important;
                         top: 0; left: 0; right: 0; bottom: 0;
-                        background: var(--background);
+                        background-color: var(--bg-primary); /* solid background */
                         z-index: 200;
                         overflow-y: auto;
                         padding: 1rem;
