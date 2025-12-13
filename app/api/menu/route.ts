@@ -17,7 +17,7 @@ export async function GET(request: Request) {
                 c.name as category_name,
                 m.price, 
                 m.gst_rate,
-                m.image_data,
+                CASE WHEN m.image_data IS NOT NULL THEN true ELSE false END as has_image,
                 m.image_type, 
                 m.available, 
                 m.created_at, 
@@ -45,13 +45,11 @@ export async function GET(request: Request) {
 
         const result = await query(queryText, params);
 
-        // Convert image_data to base64 for frontend
+        // Don't convert images to base64 here - too memory intensive
+        // Instead, provide image URL endpoint for lazy loading
         const menuItems = result.rows.map(item => ({
             ...item,
-            image_url: item.image_data && item.image_type
-                ? `data:${item.image_type};base64,${item.image_data.toString('base64')}`
-                : null,
-            image_data: undefined // Remove raw binary data from response
+            image_url: item.has_image ? `/api/menu/${item.id}/image` : null,
         }));
 
         return NextResponse.json({
