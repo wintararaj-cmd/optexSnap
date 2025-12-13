@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MenuItem } from '@/types';
 
+// Extended interface for frontend usage (since API returns image_url)
+interface MenuItemWithUrl extends MenuItem {
+    image_url?: string | null;
+}
+
 export default function AdminMenuPage() {
     const router = useRouter();
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [menuItems, setMenuItems] = useState<MenuItemWithUrl[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+    const [editingItem, setEditingItem] = useState<MenuItemWithUrl | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -76,40 +81,25 @@ export default function AdminMenuPage() {
         setUploading(true);
 
         try {
-            let imageData = null;
-
-            // Upload image if selected
-            if (imageFile) {
-                const formDataImg = new FormData();
-                formDataImg.append('image', imageFile);
-
-                const imgResponse = await fetch('/api/images', {
-                    method: 'POST',
-                    body: formDataImg,
-                });
-
-                const imgData = await imgResponse.json();
-                if (imgData.success) {
-                    imageData = { id: imgData.data.id, type: imgData.data.image_type };
-                } else {
-                    alert('Failed to upload image: ' + (imgData.error || 'Unknown error'));
-                    setUploading(false);
-                    return;
-                }
-            }
-
             const url = editingItem ? `/api/menu/${editingItem.id}` : '/api/menu';
             const method = editingItem ? 'PUT' : 'POST';
+
+            const payload: any = {
+                ...formData,
+                price: parseFloat(formData.price),
+                gst_rate: parseFloat(formData.gst_rate),
+            };
+
+            // Include image data if a new file was selected
+            if (imageFile && imagePreview) {
+                payload.image_data = imagePreview; // Base64 string
+                payload.image_type = imageFile.type;
+            }
 
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    price: parseFloat(formData.price),
-                    gst_rate: parseFloat(formData.gst_rate),
-                    ...(imageData && { image_id: imageData.id, image_type: imageData.type }),
-                }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
@@ -133,7 +123,7 @@ export default function AdminMenuPage() {
         }
     };
 
-    const handleEdit = (item: MenuItem) => {
+    const handleEdit = (item: MenuItemWithUrl) => {
         setEditingItem(item);
         setFormData({
             name: item.name,
@@ -143,9 +133,9 @@ export default function AdminMenuPage() {
             gst_rate: (item.gst_rate || 5).toString(),
             available: item.available,
         });
-        // Set image preview if item has image
-        if (item.image_id) {
-            setImagePreview(`/api/images/${item.image_id}`);
+        // Set image preview if item has image_url
+        if (item.image_url) {
+            setImagePreview(item.image_url);
         } else {
             setImagePreview('');
         }
@@ -168,7 +158,7 @@ export default function AdminMenuPage() {
         }
     };
 
-    const toggleAvailability = async (item: MenuItem) => {
+    const toggleAvailability = async (item: MenuItemWithUrl) => {
         try {
             const response = await fetch(`/api/menu/${item.id}`, {
                 method: 'PUT',
@@ -218,7 +208,7 @@ export default function AdminMenuPage() {
                             <div style={{
                                 width: '100%',
                                 height: '150px',
-                                background: item.image_id ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
+                                background: item.image_url ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
                                 borderRadius: 'var(--radius-md)',
                                 marginBottom: '1rem',
                                 display: 'flex',
@@ -226,12 +216,20 @@ export default function AdminMenuPage() {
                                 justifyContent: 'center',
                                 fontSize: '3rem',
                                 overflow: 'hidden',
+                                position: 'relative'
                             }}>
-                                {item.image_id ? (
+                                {item.image_url ? (
                                     <img
-                                        src={`/api/images/${item.image_id}`}
+                                        src={item.image_url}
                                         alt={item.name}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        onError={(e) => {
+                                            // Fallback if image fails to load
+                                            (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,...'; // Optional
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).parentElement!.style.background = 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)';
+                                            (e.target as HTMLImageElement).parentElement!.innerText = '🍽️';
+                                        }}
                                     />
                                 ) : (
                                     '🍽️'
@@ -272,6 +270,8 @@ export default function AdminMenuPage() {
                         setShowAddModal(false);
                         setEditingItem(null);
                         setFormData({ name: '', description: '', category_id: '', price: '', gst_rate: '5', available: true });
+                        setImageFile(null);
+                        setImagePreview('');
                     }}>
                         <div className="modal" onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
@@ -356,9 +356,6 @@ export default function AdminMenuPage() {
                                                 <option value="18">18% - Restaurant Services</option>
                                                 <option value="28">28% - Luxury Items</option>
                                             </select>
-                                            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                                Select the applicable GST rate for this item
-                                            </p>
                                         </div>
 
                                         <div>
@@ -409,13 +406,15 @@ export default function AdminMenuPage() {
                                                 setShowAddModal(false);
                                                 setEditingItem(null);
                                                 setFormData({ name: '', description: '', category_id: '', price: '', gst_rate: '5', available: true });
+                                                setImageFile(null);
+                                                setImagePreview('');
                                             }}
                                             className="btn btn-ghost"
                                         >
                                             Cancel
                                         </button>
                                         <button type="submit" className="btn btn-primary" disabled={uploading}>
-                                            {uploading ? 'Uploading...' : editingItem ? 'Update' : 'Add'} Item
+                                            {uploading ? 'Save...' : editingItem ? 'Update' : 'Add'} Item
                                         </button>
                                     </div>
                                 </form>

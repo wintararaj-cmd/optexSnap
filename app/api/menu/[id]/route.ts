@@ -56,7 +56,7 @@ export async function PUT(
 ) {
     try {
         const body = await request.json();
-        const { name, description, category_id, price, gst_rate, image_id, image_type, available } = body;
+        const { name, description, category_id, price, gst_rate, image_data, image_type, available } = body;
 
         // Validate category_id if provided
         if (category_id !== undefined && category_id !== null) {
@@ -72,20 +72,35 @@ export async function PUT(
             }
         }
 
-        // If image_id is provided, fetch the image data from images table
-        let imageData = null;
-        let imageType = image_type || null;
+        // Handle image data if provided (base64 -> buffer)
+        let imageBuffer = undefined; // undefined means "do not update" in COALESCE, null means "set to null"? No, COALESCE(undefined, old) works. 
+        // Wait, COALESCE($6, image_data) implies if $6 is null, keep old.
+        // If user wants to DELETE image, they might send null. 
+        // But usually in this form, if image_data is provided, we update it.
+        // If not provided (undefined), we keep old.
 
-        if (image_id) {
-            const imageResult = await query(
-                'SELECT image_data, image_type FROM images WHERE id = $1',
-                [image_id]
-            );
-            if (imageResult.rows.length > 0) {
-                imageData = imageResult.rows[0].image_data;
-                imageType = imageResult.rows[0].image_type;
-            }
+        if (image_data && typeof image_data === 'string') {
+            const base64Data = image_data.replace(/^data:image\/\w+;base64,/, '');
+            imageBuffer = Buffer.from(base64Data, 'base64');
+        } else if (image_data === null) {
+            // Explicit null to remove image? 
+            imageBuffer = null;
+            // Note: COALESCE($6, image_data) will ignore null if we pass null!
+            // So if we want to delete, we need logic. 
+            // For now, let's assume if image_data is sent, it's a new image. If undefined, ignore.
         }
+
+        // If imageBuffer is undefined, we pass null to parameter? No, passing undefined to pg might be error.
+        // We should handle the SQL dynamically or pass a value that COALESCE treats as "skip".
+        // In PG, COALESCE(NULL, col) returns col. So passing NULL skips update.
+        // So imageBuffer = null by default is correct for "skip".
+
+        // However, if we actually want to update it to new image, `imageBuffer` will be a Buffer.
+        // If we want to strictly keep logic simple:
+        const bufferToUse = imageBuffer !== undefined ? imageBuffer : null;
+        // Wait, if imageBuffer is Buffer, that's fine. If it's null (default), COALESCE sees NULL and keeps old value.
+
+        // What if user wants to delete image? We don't have that feature yet in UI.
 
         const result = await query(
             `UPDATE menu_items 
@@ -100,7 +115,7 @@ export async function PUT(
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $9
        RETURNING id, name, description, category_id, price, gst_rate, image_type, available, created_at, updated_at`,
-            [name, description, category_id, price, gst_rate, imageData, imageType, available, params.id]
+            [name, description, category_id, price, gst_rate, imageBuffer === undefined ? null : imageBuffer, image_type, available, params.id]
         );
 
         if (result.rows.length === 0) {
