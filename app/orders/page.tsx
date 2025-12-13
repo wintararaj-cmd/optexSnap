@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Order } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
+export const dynamic = 'force-dynamic';
+
 function OrdersContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
