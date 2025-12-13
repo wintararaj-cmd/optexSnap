@@ -109,7 +109,7 @@ export default function MenuPage() {
                             <div style={{
                                 width: '100%',
                                 height: '200px',
-                                background: item.image_id ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
+                                background: item.image_url ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
                                 borderRadius: 'var(--radius-md)',
                                 marginBottom: '1rem',
                                 display: 'flex',
@@ -118,9 +118,9 @@ export default function MenuPage() {
                                 fontSize: '4rem',
                                 overflow: 'hidden',
                             }}>
-                                {item.image_id ? (
+                                {item.image_url ? (
                                     <img
-                                        src={`/api/images/${item.image_id}`}
+                                        src={item.image_url}
                                         alt={item.name}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />

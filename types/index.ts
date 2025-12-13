@@ -9,6 +9,7 @@ export interface MenuItem {
     image_data?: Buffer;
     image_type?: string;
     image_id?: number;
+    image_url?: string; // Base64 encoded image data URL
     available: boolean;
     created_at?: Date;
     updated_at?: Date;
