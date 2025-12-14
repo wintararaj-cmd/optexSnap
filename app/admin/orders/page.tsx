@@ -119,12 +119,89 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const printKOTFallback = (order: any) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print the KOT.');
+            return;
+        }
+
+        const itemsHtml = (Array.isArray(order.items) ? order.items : []).map((item: any) => `
+            <tr>
+                <td style="padding: 2px 0;">${item.menuItem.name}</td>
+                <td style="text-align: right; padding: 2px 0;">${item.quantity}</td>
+            </tr>
+        `).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>KOT #${order.id}</title>
+                <style>
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 10px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: black;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center bold" style="font-size: 16px;">KITCHEN ORDER TICKET</div>
+                <div class="divider"></div>
+                
+                <div>Order #: ${order.id}</div>
+                <div>Type: ${order.order_type.toUpperCase()}</div>
+                ${order.table_number ? `<div>Table No: ${order.table_number}</div>` : ''}
+                <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+                
+                <div class="divider"></div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: right;">QTY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        }, 500);
+    };
+
     const handlePrintKOT = async (order: any) => {
         setPrintingOrderId(order.id);
         try {
             // @ts-ignore
             if (!navigator.usb) {
-                alert('WebUSB is not supported in this browser. Please use Chrome or Edge.');
+                // If WebUSB is not supported, fallback immediately
+                printKOTFallback(order);
                 return;
             }
 
@@ -167,14 +244,9 @@ export default function AdminOrdersPage() {
             await device.close();
 
         } catch (error: any) {
-            console.error('Printing error:', error);
-            if (error.name === 'SecurityError') {
-                alert('Access denied. Please ensure you have permission to access the USB device.');
-            } else if (error.message && error.message.includes('claimInterface')) {
-                alert('Could not claim printer interface. Standard Windows drivers might be blocking access. Try using Zadig to install WinUSB driver for this printer.');
-            } else {
-                alert(`Print failed: ${error.message || error}`);
-            }
+            console.warn('USB Printing failed, falling back to browser print:', error);
+            // Fallback for any error (cancelled, security, driver conflict)
+            printKOTFallback(order);
         } finally {
             setPrintingOrderId(null);
         }
