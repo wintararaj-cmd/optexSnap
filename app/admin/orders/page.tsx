@@ -50,9 +50,9 @@ export default function AdminOrdersPage() {
             const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
             return `
             <tr>
-                <td style="padding: 2px 0;">${item.menuItem.name}</td>
-                <td style="text-align: center; padding: 2px 0;">${item.quantity}</td>
-                <td style="text-align: right; padding: 2px 0;">${total}</td>
+                <td style="padding: 4px 0;">${item.menuItem.name}</td>
+                <td style="text-align: center; padding: 4px 0;">${item.quantity}</td>
+                <td style="text-align: right; padding: 4px 0;">${total}</td>
             </tr>`;
         }).join('');
 
@@ -68,29 +68,32 @@ export default function AdminOrdersPage() {
                         width: 72mm;
                         margin: 0 auto;
                         padding: 10px;
-                        font-size: 14px;
+                        font-size: 16px; 
                         font-weight: bold;
                         color: black;
                     }
                     .text-center { text-align: center; }
                     .text-right { text-align: right; }
                     .bold { font-weight: 900; }
-                    .divider { border-top: 2px dashed black; margin: 5px 0; }
-                    table { width: 100%; border-collapse: collapse; }
+                    .header-large { font-size: 24px; font-weight: 900; }
+                    .header-medium { font-size: 18px; font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 8px 0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 16px; }
+                    th { border-bottom: 2px dashed black; padding-bottom: 4px; }
                 </style>
             </head>
             <body>
-                <div class="text-center bold" style="font-size: 16px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
-                <div class="text-center" style="font-size: 12px;">${settings?.restaurantAddress || ''}</div>
-                <div class="text-center" style="font-size: 12px;">Ph: ${settings?.restaurantPhone || ''}</div>
-                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 12px;">GST: ${settings.gstNumber}</div>` : ''}
+                <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
                 
                 <div class="divider"></div>
                 
-                <div class="text-center bold">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
+                <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
                 <div>No: ${order.id}</div> 
                 <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
-                ${order.table_number ? `<div class="bold">Table No: ${order.table_number}</div>` : ''}
+                ${order.table_number ? `<div class="bold" style="font-size: 18px;">Table No: ${order.table_number}</div>` : ''}
                 
                 <div class="divider"></div>
                 
@@ -118,7 +121,7 @@ export default function AdminOrdersPage() {
                 <div class="text-right">Subtotal: ${Number(order.total_amount).toFixed(2)}</div>
                 ${Number(order.tax_amount || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
                 ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
-                <div class="text-right bold" style="font-size: 16px; margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
+                <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
                 <div class="divider"></div>
                 <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
@@ -160,20 +163,28 @@ export default function AdminOrdersPage() {
 
             // Header
             printer.alignCenter();
+            printer.setSize(2, 2); // Double Width, Double Height
             printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
             printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
             printer.textLine(settings?.restaurantAddress || '');
             printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
             if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
             printer.feed(1);
 
             // Title and Meta
+            printer.setSize(1, 2); // Double Height
             printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
             printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
             printer.textLine(`No: ${order.id}`);
             printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
             if (order.table_number) {
+                printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
+                printer.setSize(1, 1);
             }
             printer.line('-');
 
@@ -194,9 +205,11 @@ export default function AdminOrdersPage() {
                     const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
                     const qty = item.quantity.toString().padStart(3, ' ');
                     const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                    printer.setSize(1, 2); // Taller font for items
                     printer.textLine(`${name} ${qty} ${total}`);
                 });
             }
+            printer.setSize(1, 1);
             printer.line('-');
 
             // Totals
@@ -205,7 +218,9 @@ export default function AdminOrdersPage() {
             if (Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
             if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
 
+            printer.setSize(2, 2); // Large Total
             printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
+            printer.setSize(1, 1);
             printer.feed(1);
 
             // Footer

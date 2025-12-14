@@ -350,20 +350,28 @@ export default function InvoicePage() {
 
             // Header
             printer.alignCenter();
+            printer.setSize(2, 2); // Double Width, Double Height
             printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
             printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
             printer.textLine(settings?.restaurantAddress || '');
             printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
             if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
             printer.feed(1);
 
             // Title and Meta
+            printer.setSize(1, 2); // Double Height
             printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
             printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
             printer.textLine(`No: ${invoice.invoice_number}`);
             printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
             if (invoice.table_number) {
+                printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${invoice.table_number}`).bold(false);
+                printer.setSize(1, 1);
             }
             printer.line('-');
 
@@ -385,8 +393,10 @@ export default function InvoicePage() {
                 const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
                 const qty = item.quantity.toString().padStart(3, ' ');
                 const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                printer.setSize(1, 2); // Taller font for items
                 printer.textLine(`${name} ${qty} ${total}`);
             });
+            printer.setSize(1, 1); // Reset
             printer.line('-');
 
             // Totals
@@ -395,7 +405,9 @@ export default function InvoicePage() {
             if (Number(invoice.tax) > 0) printer.textLine(`Tax: ${Number(invoice.tax).toFixed(2)}`);
             if (Number(invoice.discount) > 0) printer.textLine(`Discount: -${Number(invoice.discount).toFixed(2)}`);
 
+            printer.setSize(2, 2); // Large Total
             printer.bold(true).textLine(`TOTAL: ${Number(invoice.total).toFixed(2)}`).bold(false);
+            printer.setSize(1, 1);
             printer.feed(1);
 
             // Footer

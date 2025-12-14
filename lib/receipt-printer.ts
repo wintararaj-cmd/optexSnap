@@ -43,6 +43,16 @@ export class ReceiptPrinter {
         return this;
     }
 
+    setSize(width: number, height: number) {
+        // limit size to 1-8
+        width = Math.max(1, Math.min(8, width));
+        height = Math.max(1, Math.min(8, height));
+
+        const n = ((width - 1) * 16) + (height - 1);
+        this.add([0x1D, 0x21, n]);
+        return this;
+    }
+
     text(content: string) {
         this.addText(content);
         return this;
