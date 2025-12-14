@@ -14,130 +14,53 @@ export default function AdminOrdersPage() {
 
     const [deliveryBoys, setDeliveryBoys] = useState<any[]>([]);
 
+    const [settings, setSettings] = useState<any>(null);
+
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
         if (!token) {
             router.push('/admin');
             return;
         }
+        fetchSettings();
         fetchOrders();
         fetchDeliveryBoys();
     }, []);
 
-    const fetchDeliveryBoys = async () => {
+    const fetchSettings = async () => {
         try {
-            const response = await fetch('/api/admin/delivery-boys');
+            const response = await fetch('/api/settings');
             const data = await response.json();
             if (data.success) {
-                setDeliveryBoys(data.data);
+                setSettings(data.data);
             }
         } catch (error) {
-            console.error('Error fetching delivery boys:', error);
+            console.error('Error fetching settings:', error);
         }
     };
 
-    const updateDeliveryBoy = async (orderId: number, deliveryBoyId: string) => {
-        try {
-            const response = await fetch(`/api/orders/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ delivery_boy_id: deliveryBoyId ? parseInt(deliveryBoyId) : null }),
-            });
-
-            if (response.ok) {
-                fetchOrders();
-                alert('Delivery Boy Assigned Updated');
-            } else {
-                alert('Failed to update assignment');
-            }
-        } catch (error) {
-            console.error('Error updating delivery boy:', error);
-        }
-    };
-
-
-
-    const fetchOrders = async () => {
-        try {
-            const response = await fetch('/api/orders');
-            const data = await response.json();
-            if (data.success) {
-                setOrders(data.data);
-            }
-        } catch (error) {
-            console.error('Error fetching orders:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const updateOrderStatus = async (orderId: number, status: string) => {
-        try {
-            console.log('Updating order status:', orderId, status);
-            const response = await fetch(`/api/orders/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_status: status }),
-            });
-
-            const data = await response.json();
-            console.log('Update response:', data);
-
-            if (data.success) {
-                fetchOrders();
-                alert(`Order status updated to: ${status}`);
-            } else {
-                alert(`Failed to update order: ${data.error}`);
-            }
-        } catch (error) {
-            console.error('Error updating order:', error);
-            alert('An error occurred while updating the order. Check console for details.');
-        }
-    };
-
-    const updatePaymentStatus = async (orderId: number, status: string) => {
-        try {
-            console.log('Updating payment status:', orderId, status);
-            const response = await fetch(`/api/orders/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ payment_status: status }),
-            });
-
-            const data = await response.json();
-            console.log('Update response:', data);
-
-            if (data.success) {
-                fetchOrders();
-                alert(`Payment status updated to: ${status}`);
-            } else {
-                alert(`Failed to update payment: ${data.error}`);
-            }
-        } catch (error) {
-            console.error('Error updating payment:', error);
-            alert('An error occurred while updating payment. Check console for details.');
-        }
-    };
-
-    const printKOTFallback = (order: any) => {
+    const printReceiptFallback = (order: any, settings: any) => {
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         if (!printWindow) {
-            alert('Please allow popups to print the KOT.');
+            alert('Please allow popups to print the receipt.');
             return;
         }
 
-        const itemsHtml = (Array.isArray(order.items) ? order.items : []).map((item: any) => `
+        const itemsHtml = (Array.isArray(order.items) ? order.items : []).map((item: any) => {
+            const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
+            return `
             <tr>
                 <td style="padding: 2px 0;">${item.menuItem.name}</td>
-                <td style="text-align: right; padding: 2px 0;">${item.quantity}</td>
-            </tr>
-        `).join('');
+                <td style="text-align: center; padding: 2px 0;">${item.quantity}</td>
+                <td style="text-align: right; padding: 2px 0;">${total}</td>
+            </tr>`;
+        }).join('');
 
         const htmlContent = `
             <!DOCTYPE html>
             <html>
             <head>
-                <title>KOT #${order.id}</title>
+                <title>Receipt #${order.id}</title>
                 <style>
                     @page { margin: 0; size: 80mm auto; }
                     body {
@@ -157,13 +80,24 @@ export default function AdminOrdersPage() {
                 </style>
             </head>
             <body>
-                <div class="text-center bold" style="font-size: 16px;">KITCHEN ORDER TICKET</div>
+                <div class="text-center bold" style="font-size: 16px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 12px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 12px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 12px;">GST: ${settings.gstNumber}</div>` : ''}
+                
                 <div class="divider"></div>
                 
-                <div>Order #: ${order.id}</div>
-                <div>Type: ${order.order_type.toUpperCase()}</div>
-                ${order.table_number ? `<div>Table No: ${order.table_number}</div>` : ''}
+                <div class="text-center bold">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
+                <div>No: ${order.id}</div> 
                 <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+                ${order.table_number ? `<div class="bold">Table No: ${order.table_number}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div>Name: ${order.customer_name}</div>
+                <div>Phone: ${order.customer_phone}</div>
+                ${order.customer_address ? `<div>Addr: ${order.customer_address}</div>` : ''}
+                <div>Type: ${order.order_type.toUpperCase()}</div>
                 
                 <div class="divider"></div>
                 
@@ -171,7 +105,8 @@ export default function AdminOrdersPage() {
                     <thead>
                         <tr>
                             <th style="text-align: left;">ITEM</th>
-                            <th style="text-align: right;">QTY</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,6 +114,15 @@ export default function AdminOrdersPage() {
                     </tbody>
                 </table>
                 <div class="divider"></div>
+                
+                <div class="text-right">Subtotal: ${Number(order.total_amount).toFixed(2)}</div>
+                ${Number(order.tax_amount || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
+                <div class="text-right bold" style="font-size: 16px; margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
+                
+                <div class="divider"></div>
+                <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
+                <br />
             </body>
             </html>
         `;
@@ -195,13 +139,14 @@ export default function AdminOrdersPage() {
         }, 500);
     };
 
-    const handlePrintKOT = async (order: any) => {
+    const handlePrintBill = async (order: any) => {
         setPrintingOrderId(order.id);
+
         try {
             // @ts-ignore
             if (!navigator.usb) {
                 // If WebUSB is not supported, fallback immediately
-                printKOTFallback(order);
+                printReceiptFallback(order, settings);
                 return;
             }
 
@@ -212,28 +157,60 @@ export default function AdminOrdersPage() {
             await device.claimInterface(0);
 
             const printer = new ReceiptPrinter();
+
+            // Header
             printer.alignCenter();
-            printer.bold(true).textLine('KITCHEN ORDER TICKET').bold(false);
+            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(false);
+            printer.textLine(settings?.restaurantAddress || '');
+            printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
+            if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
             printer.feed(1);
 
-            printer.alignLeft();
-            printer.textLine(`Order #: ${order.id}`);
-            printer.textLine(`Type: ${order.order_type.toUpperCase()}`);
-            if (order.table_number) printer.textLine(`Table No: ${order.table_number}`);
+            // Title and Meta
+            printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
+            printer.bold(false);
+            printer.textLine(`No: ${order.id}`);
             printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
+            if (order.table_number) {
+                printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
+            }
             printer.line('-');
 
-            printer.textLine('ITEM                     QTY');
+            // Customer
+            printer.alignLeft();
+            printer.textLine(`Name: ${order.customer_name}`);
+            printer.textLine(`Phone: ${order.customer_phone}`);
+            if (order.customer_address) printer.textLine(`Addr: ${order.customer_address}`);
+            printer.textLine(`Type: ${order.order_type.toUpperCase()}`);
+            printer.line('-');
+
+            // Items
+            printer.textLine('ITEM             QTY      AMT');
             printer.line('-');
 
             if (Array.isArray(order.items)) {
                 order.items.forEach((item: any) => {
-                    const name = item.menuItem.name.substring(0, 24).padEnd(24, ' ');
+                    const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
                     const qty = item.quantity.toString().padStart(3, ' ');
-                    printer.textLine(`${name} ${qty}`);
+                    const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                    printer.textLine(`${name} ${qty} ${total}`);
                 });
             }
+            printer.line('-');
 
+            // Totals
+            printer.alignRight();
+            printer.textLine(`Subtotal: ${Number(order.total_amount).toFixed(2)}`);
+            if (Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
+
+            printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
+            printer.feed(1);
+
+            // Footer
+            printer.alignCenter();
+            printer.textLine(settings?.footerText || 'Thank You!');
             printer.feed(3);
             printer.cut();
 
@@ -244,9 +221,8 @@ export default function AdminOrdersPage() {
             await device.close();
 
         } catch (error: any) {
-            console.warn('USB Printing failed, falling back to browser print:', error);
-            // Fallback for any error (cancelled, security, driver conflict)
-            printKOTFallback(order);
+            console.warn('USB Bill Print failed, falling back:', error);
+            printReceiptFallback(order, settings);
         } finally {
             setPrintingOrderId(null);
         }
@@ -328,12 +304,12 @@ export default function AdminOrdersPage() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                         <button
-                                            onClick={() => handlePrintKOT(order)}
+                                            onClick={() => handlePrintBill(order)}
                                             className="btn btn-warning"
                                             style={{ padding: '0.375rem 0.75rem', fontSize: '0.875rem' }}
                                             disabled={printingOrderId === order.id}
                                         >
-                                            {printingOrderId === order.id ? '🖨️...' : '🖨️ Print Order'}
+                                            {printingOrderId === order.id ? '🖨️...' : '🖨️ Print Invoice'}
                                         </button>
                                         <button
                                             onClick={() => {
