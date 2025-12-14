@@ -39,6 +39,99 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const fetchOrders = async () => {
+        try {
+            const response = await fetch('/api/orders');
+            const data = await response.json();
+            if (data.success) {
+                setOrders(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchDeliveryBoys = async () => {
+        try {
+            const response = await fetch('/api/admin/delivery-boys');
+            const data = await response.json();
+            if (data.success) {
+                setDeliveryBoys(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching delivery boys:', error);
+        }
+    };
+
+    const updateDeliveryBoy = async (orderId: number, deliveryBoyId: string) => {
+        try {
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ delivery_boy_id: deliveryBoyId ? parseInt(deliveryBoyId) : null }),
+            });
+
+            if (response.ok) {
+                fetchOrders();
+                alert('Delivery Boy Assigned Updated');
+            } else {
+                alert('Failed to update assignment');
+            }
+        } catch (error) {
+            console.error('Error updating delivery boy:', error);
+        }
+    };
+
+    const updateOrderStatus = async (orderId: number, status: string) => {
+        try {
+            console.log('Updating order status:', orderId, status);
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_status: status }),
+            });
+
+            const data = await response.json();
+            console.log('Update response:', data);
+
+            if (data.success) {
+                fetchOrders();
+                alert(`Order status updated to: ${status}`);
+            } else {
+                alert(`Failed to update order: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating order:', error);
+            alert('An error occurred while updating the order. Check console for details.');
+        }
+    };
+
+    const updatePaymentStatus = async (orderId: number, status: string) => {
+        try {
+            console.log('Updating payment status:', orderId, status);
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_status: status }),
+            });
+
+            const data = await response.json();
+            console.log('Update response:', data);
+
+            if (data.success) {
+                fetchOrders();
+                alert(`Payment status updated to: ${status}`);
+            } else {
+                alert(`Failed to update payment: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating payment:', error);
+            alert('An error occurred while updating payment. Check console for details.');
+        }
+    };
+
     const printReceiptFallback = (order: any, settings: any) => {
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         if (!printWindow) {
