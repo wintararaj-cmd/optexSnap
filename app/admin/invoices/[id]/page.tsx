@@ -198,6 +198,134 @@ export default function InvoicePage() {
         }, 500);
     };
 
+    const printKOTFallback = (invoice: InvoiceData) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print the KOT.');
+            return;
+        }
+
+        const itemsHtml = invoice.items.map((item: any) => `
+            <tr>
+                <td style="padding: 2px 0;">${item.menuItem.name}</td>
+                <td style="text-align: right; padding: 2px 0;">${item.quantity}</td>
+            </tr>
+        `).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>KOT #${invoice.order_id}</title>
+                <style>
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 10px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: black;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center bold" style="font-size: 16px;">KITCHEN ORDER TICKET</div>
+                <div class="divider"></div>
+                
+                <div>Order #: ${invoice.order_id}</div>
+                <div>Type: ${invoice.order_type.toUpperCase()}</div>
+                ${invoice.table_number ? `<div>Table No: ${invoice.table_number}</div>` : ''}
+                <div>Date: ${new Date(invoice.order_date).toLocaleString()}</div>
+                
+                <div class="divider"></div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: right;">QTY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        }, 500);
+    };
+
+    const handlePrintKOT = async () => {
+        if (!invoice) return;
+
+        try {
+            // @ts-ignore
+            if (!navigator.usb) {
+                printKOTFallback(invoice);
+                return;
+            }
+
+            // @ts-ignore
+            const device = await navigator.usb.requestDevice({ filters: [] });
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+
+            const printer = new ReceiptPrinter();
+            printer.alignCenter();
+            printer.bold(true).textLine('KITCHEN ORDER TICKET').bold(false);
+            printer.feed(1);
+
+            printer.alignLeft();
+            printer.textLine(`Order #: ${invoice.order_id}`);
+            printer.textLine(`Type: ${invoice.order_type.toUpperCase()}`);
+            if (invoice.table_number) printer.textLine(`Table No: ${invoice.table_number}`);
+            printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
+            printer.line('-');
+
+            printer.textLine('ITEM                     QTY');
+            printer.line('-');
+
+            invoice.items.forEach((item: any) => {
+                const name = item.menuItem.name.substring(0, 24).padEnd(24, ' ');
+                const qty = item.quantity.toString().padStart(3, ' ');
+                printer.textLine(`${name} ${qty}`);
+            });
+
+            printer.feed(3);
+            printer.cut();
+
+            const data = printer.getData();
+            // @ts-ignore
+            await device.transferOut(1, data);
+            // @ts-ignore
+            await device.close();
+
+        } catch (error: any) {
+            console.warn('USB KOT Print failed, falling back:', error);
+            printKOTFallback(invoice);
+        }
+    };
+
     const handleRawPrint = async () => {
         if (!invoice) return;
         setIsPrinting(true);
@@ -490,14 +618,17 @@ export default function InvoicePage() {
                     <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <h1>Invoice Details</h1>
                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            <button onClick={handleRawPrint} className="btn btn-warning" disabled={isPrinting}>
-                                {isPrinting ? 'Printing...' : '🔌 USB Raw Print'}
+                            <button onClick={handlePrintKOT} className="btn btn-warning">
+                                🖨️ Print KOT (Order)
+                            </button>
+                            <button onClick={handleRawPrint} className="btn btn-primary" disabled={isPrinting}>
+                                {isPrinting ? 'Printing...' : '🔌 USB Raw Invoice'}
                             </button>
 
                             <button onClick={handleWhatsAppShare} className="btn btn-secondary">
                                 📱 Send via WhatsApp
                             </button>
-                            <button onClick={handlePrint} className="btn btn-primary">
+                            <button onClick={handlePrint} className="btn btn-ghost" style={{ border: '1px solid var(--border-color)' }}>
                                 🖨️ Browser Print
                             </button>
                             <button onClick={() => router.push('/admin/orders')} className="btn btn-ghost">
