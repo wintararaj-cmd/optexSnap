@@ -27,6 +27,8 @@ interface DeliveryLocation {
     is_active: boolean;
 }
 
+import { ReceiptPrinter } from '@/lib/receipt-printer';
+
 export default function CreateOrderPage() {
     const router = useRouter();
     const { user } = useAuth();
@@ -36,6 +38,7 @@ export default function CreateOrderPage() {
     const [categories, setCategories] = useState<string[]>([]);
     const [deliveryLocations, setDeliveryLocations] = useState<DeliveryLocation[]>([]);
     const [loading, setLoading] = useState(true);
+    const [settings, setSettings] = useState<any>(null); // Settings State
 
     // Filter UI
     const [searchQuery, setSearchQuery] = useState('');
@@ -44,6 +47,7 @@ export default function CreateOrderPage() {
     // Order State
     const [cart, setCart] = useState<CartItem[]>([]);
     const [submitting, setSubmitting] = useState(false);
+    const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
 
     const [orderType, setOrderType] = useState<'takeaway' | 'delivery' | 'dine-in'>('takeaway');
     const [tableNumber, setTableNumber] = useState('');
@@ -57,6 +61,9 @@ export default function CreateOrderPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
+                // Fetch Settings
+                fetchSettings();
+
                 // Fetch Menu
                 const menuRes = await fetch('/api/menu?available=true');
                 const menuData = await menuRes.json();
@@ -80,6 +87,19 @@ export default function CreateOrderPage() {
         };
         loadData();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
+
 
     const filteredItems = menuItems.filter(item => {
         const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -124,7 +144,213 @@ export default function CreateOrderPage() {
 
     const grandTotal = calculateSubtotal() + calculateTax() + getDeliveryCharge();
 
-    const handleSubmitOrder = async (status: string = 'pending') => {
+    // PRINTING LOGIC
+    const printReceiptFallback = (order: any, settings: any) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print the receipt.');
+            return;
+        }
+
+        const itemsHtml = (Array.isArray(order.items) ? order.items : []).map((item: any) => {
+            const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
+            return `
+            <tr>
+                <td style="padding: 4px 0;">${item.menuItem.name}</td>
+                <td style="text-align: center; padding: 4px 0;">${item.quantity}</td>
+                <td style="text-align: right; padding: 4px 0;">${total}</td>
+            </tr>`;
+        }).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt #${order.id}</title>
+                <style>
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 10px;
+                        font-size: 16px; 
+                        font-weight: bold;
+                        color: black;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: 900; }
+                    .header-large { font-size: 24px; font-weight: 900; }
+                    .header-medium { font-size: 18px; font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 8px 0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 16px; }
+                    th { border-bottom: 2px dashed black; padding-bottom: 4px; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
+                <div>No: ${order.id}</div> 
+                <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+                ${order.table_number ? `<div class="bold" style="font-size: 18px;">Table No: ${order.table_number}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div>Name: ${order.customer_name}</div>
+                <div>Phone: ${order.customer_phone}</div>
+                ${order.customer_address ? `<div>Addr: ${order.customer_address}</div>` : ''}
+                <div>Type: ${order.order_type.toUpperCase()}</div>
+                
+                <div class="divider"></div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+                
+                <div class="text-right">Subtotal: ${Number(order.total_amount).toFixed(2)}</div>
+                ${Number(order.tax_amount || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
+                <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
+                
+                <div class="divider"></div>
+                <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
+                <br />
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        }, 500);
+    };
+
+    const handlePrintBill = async (order: any) => {
+        setPrintingOrderId(order.id);
+
+        try {
+            // @ts-ignore
+            if (!navigator.usb) {
+                // If WebUSB is not supported, fallback immediately
+                printReceiptFallback(order, settings);
+                return;
+            }
+
+            // @ts-ignore
+            const device = await navigator.usb.requestDevice({ filters: [] });
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+
+            const printer = new ReceiptPrinter();
+
+            // Header
+            printer.alignCenter();
+            printer.setSize(2, 2); // Double Width, Double Height
+            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
+            printer.textLine(settings?.restaurantAddress || '');
+            printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
+            if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
+            printer.feed(1);
+
+            // Title and Meta
+            printer.setSize(1, 2); // Double Height
+            printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
+            printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
+            printer.textLine(`No: ${order.id}`);
+            printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
+            if (order.table_number) {
+                printer.setSize(2, 2);
+                printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
+                printer.setSize(1, 1);
+            }
+            printer.line('-');
+
+            // Customer
+            printer.alignLeft();
+            printer.textLine(`Name: ${order.customer_name}`);
+            printer.textLine(`Phone: ${order.customer_phone}`);
+            if (order.customer_address) printer.textLine(`Addr: ${order.customer_address}`);
+            printer.textLine(`Type: ${order.order_type.toUpperCase()}`);
+            printer.line('-');
+
+            // Items
+            printer.textLine('ITEM             QTY      AMT');
+            printer.line('-');
+
+            if (Array.isArray(order.items)) {
+                order.items.forEach((item: any) => {
+                    const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
+                    const qty = item.quantity.toString().padStart(3, ' ');
+                    const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                    printer.setSize(1, 2); // Taller font for items
+                    printer.textLine(`${name} ${qty} ${total}`);
+                });
+            }
+            printer.setSize(1, 1);
+            printer.line('-');
+
+            // Totals
+            printer.alignRight();
+            printer.textLine(`Subtotal: ${Number(order.total_amount).toFixed(2)}`);
+            if (Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
+
+            printer.setSize(2, 2); // Large Total
+            printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
+            printer.setSize(1, 1);
+            printer.feed(1);
+
+            // Footer
+            printer.alignCenter();
+            printer.textLine(settings?.footerText || 'Thank You!');
+            printer.feed(3);
+            printer.cut();
+
+            const data = printer.getData();
+            // @ts-ignore
+            await device.transferOut(1, data);
+            // @ts-ignore
+            await device.close();
+
+        } catch (error: any) {
+            console.warn('USB Bill Print failed, falling back:', error);
+            printReceiptFallback(order, settings);
+        } finally {
+            setPrintingOrderId(null);
+        }
+    };
+
+
+    const handleSubmitOrder = async (status: string = 'pending', shouldPrint: boolean = false) => {
         // Validation
         if (orderType === 'dine-in' && !tableNumber) return alert('Please provide Table Number for Dine-in');
         if (orderType === 'delivery') {
@@ -162,6 +388,25 @@ export default function CreateOrderPage() {
             const data = await res.json();
 
             if (data.success) {
+                if (shouldPrint) {
+                    // Compose printing object
+                    const createdOrder = data.data; // usually returns DB row
+                    // We need to merge with cart items to have MenuItem details for printing
+                    const printableOrder = {
+                        ...createdOrder,
+                        items: cart, // use local cart which has menuItem details
+                        customer_name: customerName,
+                        customer_phone: customerPhone,
+                        customer_address: customerAddress,
+                        table_number: tableNumber,
+                        order_type: orderType,
+                        total_amount: grandTotal,
+                        tax_amount: calculateTax(),
+                        discount_amount: 0
+                    };
+                    await handlePrintBill(printableOrder);
+                }
+
                 alert(`Order Created! Invoice: ${data.data.invoice_number}`);
                 router.push('/admin/orders');
             } else {
@@ -299,22 +544,30 @@ export default function CreateOrderPage() {
                                 <span>₹{grandTotal.toFixed(2)}</span>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
                                 <button
-                                    onClick={() => handleSubmitOrder('pending')}
+                                    onClick={() => handleSubmitOrder('pending', false)}
                                     className="btn btn-ghost"
                                     style={{ border: '1px solid var(--border-color)', width: '100%' }}
                                     disabled={submitting}
                                 >
-                                    {submitting ? 'Saving...' : 'Save Order'}
+                                    {submitting ? '...' : 'Save'}
                                 </button>
                                 <button
-                                    onClick={() => handleSubmitOrder('confirmed')}
+                                    onClick={() => handleSubmitOrder('pending', true)}
+                                    className="btn btn-warning"
+                                    style={{ width: '100%', fontSize: '0.9rem', padding: '0 0.25rem' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Printing...' : 'Save & Print'}
+                                </button>
+                                <button
+                                    onClick={() => handleSubmitOrder('confirmed', false)}
                                     className="btn btn-primary"
                                     style={{ width: '100%' }}
                                     disabled={submitting}
                                 >
-                                    {submitting ? 'Placing...' : 'Place Order'}
+                                    {submitting ? '...' : 'Place Order'}
                                 </button>
                             </div>
                         </div>
