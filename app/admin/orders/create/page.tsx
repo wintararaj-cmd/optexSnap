@@ -124,7 +124,7 @@ export default function CreateOrderPage() {
 
     const grandTotal = calculateSubtotal() + calculateTax() + getDeliveryCharge();
 
-    const handleSubmitOrder = async () => {
+    const handleSubmitOrder = async (status: string = 'pending') => {
         // Validation
         if (orderType === 'dine-in' && !tableNumber) return alert('Please provide Table Number for Dine-in');
         if (orderType === 'delivery') {
@@ -151,6 +151,7 @@ export default function CreateOrderPage() {
                 payment_method: paymentMethod,
                 notes: notes || null,
                 table_number: orderType === 'dine-in' ? tableNumber : null,
+                order_status: status,
             };
 
             const res = await fetch('/api/orders', {
@@ -298,9 +299,24 @@ export default function CreateOrderPage() {
                                 <span>₹{grandTotal.toFixed(2)}</span>
                             </div>
 
-                            <button onClick={handleSubmitOrder} className="btn btn-primary w-full" disabled={submitting}>
-                                {submitting ? 'Creating...' : 'Create Order'}
-                            </button>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => handleSubmitOrder('pending')}
+                                    className="btn btn-ghost"
+                                    style={{ border: '1px solid var(--border-color)', width: '100%' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Saving...' : 'Save Order'}
+                                </button>
+                                <button
+                                    onClick={() => handleSubmitOrder('confirmed')}
+                                    className="btn btn-primary"
+                                    style={{ width: '100%' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Placing...' : 'Place Order'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

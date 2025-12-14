@@ -111,7 +111,7 @@ export default function SalesmanDashboard() {
     const grandTotal = calculateTotal() + calculateTax();
     const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-    const handleSubmitOrder = async () => {
+    const handleSubmitOrder = async (status: string = 'pending') => {
         if (orderType === 'dine-in' && !tableNumber) {
             alert('Please provide Table Number for Dine-in');
             return;
@@ -135,6 +135,7 @@ export default function SalesmanDashboard() {
                 payment_method: paymentMethod,
                 discount: 0,
                 table_number: tableNumber || null,
+                order_status: status,
             };
 
             const res = await fetch('/api/orders', {
@@ -379,14 +380,24 @@ export default function SalesmanDashboard() {
                                 <span>₹{grandTotal.toFixed(2)}</span>
                             </div>
 
-                            <button
-                                onClick={handleSubmitOrder}
-                                className="btn btn-primary"
-                                style={{ width: '100%', fontSize: '1.2rem', padding: '1rem', fontWeight: 'bold' }}
-                                disabled={submitting}
-                            >
-                                {submitting ? 'Placing Order...' : 'Place Order'}
-                            </button>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <button
+                                    onClick={() => handleSubmitOrder('pending')}
+                                    className="btn btn-ghost"
+                                    style={{ width: '100%', fontSize: '1.1rem', padding: '1rem', fontWeight: 'bold', border: '1px solid var(--border-color)', background: 'transparent' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Saving...' : 'Save Order'}
+                                </button>
+                                <button
+                                    onClick={() => handleSubmitOrder('confirmed')}
+                                    className="btn btn-primary"
+                                    style={{ width: '100%', fontSize: '1.2rem', padding: '1rem', fontWeight: 'bold' }}
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Placing...' : 'Place Order'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
