@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { ReceiptPrinter } from '@/lib/receipt-printer';
+
 export default function AdminOrdersPage() {
     const router = useRouter();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
 
     const [deliveryBoys, setDeliveryBoys] = useState<any[]>([]);
 
@@ -116,6 +119,67 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const handlePrintKOT = async (order: any) => {
+        setPrintingOrderId(order.id);
+        try {
+            // @ts-ignore
+            if (!navigator.usb) {
+                alert('WebUSB is not supported in this browser. Please use Chrome or Edge.');
+                return;
+            }
+
+            // @ts-ignore
+            const device = await navigator.usb.requestDevice({ filters: [] });
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+
+            const printer = new ReceiptPrinter();
+            printer.alignCenter();
+            printer.bold(true).textLine('KITCHEN ORDER TICKET').bold(false);
+            printer.feed(1);
+
+            printer.alignLeft();
+            printer.textLine(`Order #: ${order.id}`);
+            printer.textLine(`Type: ${order.order_type.toUpperCase()}`);
+            if (order.table_number) printer.textLine(`Table No: ${order.table_number}`);
+            printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
+            printer.line('-');
+
+            printer.textLine('ITEM                     QTY');
+            printer.line('-');
+
+            if (Array.isArray(order.items)) {
+                order.items.forEach((item: any) => {
+                    const name = item.menuItem.name.substring(0, 24).padEnd(24, ' ');
+                    const qty = item.quantity.toString().padStart(3, ' ');
+                    printer.textLine(`${name} ${qty}`);
+                });
+            }
+
+            printer.feed(3);
+            printer.cut();
+
+            const data = printer.getData();
+            // @ts-ignore
+            await device.transferOut(1, data);
+            // @ts-ignore
+            await device.close();
+
+        } catch (error: any) {
+            console.error('Printing error:', error);
+            if (error.name === 'SecurityError') {
+                alert('Access denied. Please ensure you have permission to access the USB device.');
+            } else if (error.message && error.message.includes('claimInterface')) {
+                alert('Could not claim printer interface. Standard Windows drivers might be blocking access. Try using Zadig to install WinUSB driver for this printer.');
+            } else {
+                alert(`Print failed: ${error.message || error}`);
+            }
+        } finally {
+            setPrintingOrderId(null);
+        }
+    };
+
     const filteredOrders = filter === 'all'
         ? orders
         : orders.filter(o => o.order_status === filter);
@@ -176,6 +240,7 @@ export default function AdminOrdersPage() {
                                             textTransform: 'capitalize'
                                         }}>
                                             {order.order_type || 'delivery'}
+                                            {order.table_number && ` (Table: ${order.table_number})`}
                                         </span>
                                     </div>
                                     <p className="text-muted" style={{ fontSize: '0.9375rem', marginBottom: '0.5rem' }}>
@@ -190,6 +255,14 @@ export default function AdminOrdersPage() {
                                         ₹{parseFloat(order.total_amount).toFixed(2)}
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                        <button
+                                            onClick={() => handlePrintKOT(order)}
+                                            className="btn btn-warning"
+                                            style={{ padding: '0.375rem 0.75rem', fontSize: '0.875rem' }}
+                                            disabled={printingOrderId === order.id}
+                                        >
+                                            {printingOrderId === order.id ? '🖨️...' : '🖨️ Print Order'}
+                                        </button>
                                         <button
                                             onClick={() => {
                                                 const phoneNumber = order.customer_phone.replace(/\D/g, '');
