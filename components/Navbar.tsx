@@ -11,7 +11,7 @@ export default function Navbar() {
     const router = useRouter();
     const { getCartCount } = useCart();
     const { theme, toggleTheme } = useTheme();
-    const { user, logout, isAuthenticated, isAdmin } = useAuth();
+    const { user, logout, isAuthenticated, isAdmin, isSalesman } = useAuth();
     const cartCount = getCartCount();
 
     const isActive = (path: string) => pathname === path;
@@ -85,6 +85,7 @@ export default function Navbar() {
                             <span className="text-muted" style={{ fontSize: '0.9rem' }}>
                                 {user?.name}
                             </span>
+
                             {isAdmin && (
                                 <button
                                     onClick={handleAdminClick}
@@ -94,6 +95,17 @@ export default function Navbar() {
                                     Dashboard
                                 </button>
                             )}
+
+                            {(isAdmin || isSalesman) && (
+                                <Link
+                                    href="/salesman"
+                                    className="btn btn-secondary"
+                                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}
+                                >
+                                    Salesman POS
+                                </Link>
+                            )}
+
                             <button
                                 onClick={logout}
                                 className="btn btn-outline"
