@@ -98,6 +98,106 @@ export default function InvoicePage() {
         window.print();
     };
 
+    const printReceiptFallback = (invoice: InvoiceData, settings: any) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print the receipt.');
+            return;
+        }
+
+        const itemsHtml = invoice.items.map((item: any) => {
+            const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
+            return `
+            <tr>
+                <td style="padding: 2px 0;">${item.menuItem.name}</td>
+                <td style="text-align: center; padding: 2px 0;">${item.quantity}</td>
+                <td style="text-align: right; padding: 2px 0;">${total}</td>
+            </tr>`;
+        }).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt #${invoice.invoice_number}</title>
+                <style>
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 10px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: black;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center bold" style="font-size: 16px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 12px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 12px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 12px;">GST: ${settings.gstNumber}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div class="text-center bold">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
+                <div>No: ${invoice.invoice_number}</div>
+                <div>Date: ${new Date(invoice.order_date).toLocaleString()}</div>
+                ${invoice.table_number ? `<div class="bold">Table No: ${invoice.table_number}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div>Name: ${invoice.customer_name}</div>
+                <div>Phone: ${invoice.customer_phone}</div>
+                ${invoice.customer_address ? `<div>Addr: ${invoice.customer_address}</div>` : ''}
+                <div>Type: ${invoice.order_type.toUpperCase()}</div>
+                
+                <div class="divider"></div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+                
+                <div class="text-right">Subtotal: ${Number(invoice.subtotal).toFixed(2)}</div>
+                ${Number(invoice.tax) > 0 ? `<div class="text-right">Tax: ${Number(invoice.tax).toFixed(2)}</div>` : ''}
+                ${Number(invoice.discount) > 0 ? `<div class="text-right">Discount: -${Number(invoice.discount).toFixed(2)}</div>` : ''}
+                <div class="text-right bold" style="font-size: 16px; margin-top: 5px;">TOTAL: ${Number(invoice.total).toFixed(2)}</div>
+                
+                <div class="divider"></div>
+                <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
+                <br />
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        }, 500);
+    };
+
     const handleRawPrint = async () => {
         if (!invoice) return;
         setIsPrinting(true);
@@ -105,7 +205,8 @@ export default function InvoicePage() {
         try {
             // @ts-ignore - Navigator.usb is experimental and may not be in TS definitions
             if (!navigator.usb) {
-                alert('WebUSB is not supported in this browser. Please use Chrome or Edge.');
+                // Fallback immediately if WebUSB not supported
+                printReceiptFallback(invoice, settings);
                 return;
             }
 
@@ -186,14 +287,8 @@ export default function InvoicePage() {
             await device.close();
 
         } catch (error: any) {
-            console.error('Printing error:', error);
-            if (error.name === 'SecurityError') {
-                alert('Access denied. Please ensure you have permission to access the USB device.');
-            } else if (error.message && error.message.includes('claimInterface')) {
-                alert('Could not claim printer interface. Standard Windows drivers might be blocking access. Try using Zadig to install WinUSB driver for this printer, or use standard browser print.');
-            } else {
-                alert(`Print failed: ${error.message || error}`);
-            }
+            console.warn('USB Printing failed, falling back to browser print:', error);
+            printReceiptFallback(invoice, settings);
         } finally {
             setIsPrinting(false);
         }
