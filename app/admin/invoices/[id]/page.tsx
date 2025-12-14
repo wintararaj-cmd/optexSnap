@@ -118,7 +118,7 @@ export default function InvoicePage() {
             `*ITEMS:*\n${itemsList}\n` +
             `*━━━━━━━━━━━━━━━━*\n\n` +
             `💰 *Subtotal:* ₹${parseFloat(invoice.subtotal.toString()).toFixed(2)}\n` +
-            (settings?.gstType === 'regular' ? `📊 *Tax:* ₹${parseFloat(invoice.tax.toString()).toFixed(2)}\n` : '') +
+            ((settings?.gstType === 'regular' || invoice.tax > 0) ? `📊 *Tax:* ₹${parseFloat(invoice.tax.toString()).toFixed(2)}\n` : '') +
             `${invoice.discount > 0 ? `🎁 *Discount:* -₹${parseFloat(invoice.discount.toString()).toFixed(2)}\n` : ''}` +
             `*━━━━━━━━━━━━━━━━*\n` +
             `💳 *TOTAL:* ₹${parseFloat(invoice.total.toString()).toFixed(2)}\n\n` +
@@ -420,7 +420,7 @@ export default function InvoicePage() {
                                 <span>Subtotal:</span>
                                 <span>₹{parseFloat(invoice.subtotal.toString()).toFixed(2)}</span>
                             </div>
-                            {settings?.gstType === 'regular' && (
+                            {(settings?.gstType === 'regular' || invoice.tax > 0) && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', padding: settings?.printerType === 'thermal' ? '0.125rem 0' : '0.5rem 0', fontSize: settings?.printerType === 'thermal' ? '0.75rem' : 'inherit' }}>
                                     <span>Tax:</span>
                                     <span>₹{parseFloat(invoice.tax.toString()).toFixed(2)}</span>
