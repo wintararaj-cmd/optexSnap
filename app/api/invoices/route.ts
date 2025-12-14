@@ -10,7 +10,7 @@ export async function GET(request: Request) {
         let queryText = `
             SELECT i.*, o.customer_name, o.customer_phone, o.customer_address, 
                    o.items, o.payment_method, o.payment_status, o.order_type,
-                   o.created_at as order_date
+                   o.created_at as order_date, o.table_number
             FROM invoices i
             JOIN orders o ON i.order_id = o.id
             WHERE 1=1

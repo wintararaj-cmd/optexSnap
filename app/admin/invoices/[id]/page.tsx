@@ -20,6 +20,7 @@ interface InvoiceData {
     payment_status: string;
     order_type: string;
     order_date: string;
+    table_number?: string;
 }
 
 
@@ -132,6 +133,9 @@ export default function InvoicePage() {
             printer.bold(false);
             printer.textLine(`No: ${invoice.invoice_number}`);
             printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
+            if (invoice.table_number) {
+                printer.bold(true).textLine(`Table No: ${invoice.table_number}`).bold(false);
+            }
             printer.line('-');
 
             // Customer
@@ -215,7 +219,8 @@ export default function InvoicePage() {
             `👤 *Customer:* ${invoice.customer_name}\n` +
             `📞 *Phone:* ${invoice.customer_phone}\n` +
             `${invoice.customer_address ? `📍 *Address:* ${invoice.customer_address}\n` : ''}` +
-            `🛵 *Order Type:* ${invoice.order_type.charAt(0).toUpperCase() + invoice.order_type.slice(1)}\n\n` +
+            `🛵 *Order Type:* ${invoice.order_type.charAt(0).toUpperCase() + invoice.order_type.slice(1)}\n` +
+            (invoice.table_number ? `🪑 *Table:* ${invoice.table_number}\n\n` : `\n`) +
             `*━━━━━━━━━━━━━━━━*\n` +
             `*ITEMS:*\n${itemsList}\n` +
             `*━━━━━━━━━━━━━━━━*\n\n` +
@@ -448,6 +453,7 @@ export default function InvoicePage() {
                                                 <>Address: {invoice.customer_address}<br /></>
                                             )}
                                             Order Type: <span style={{ textTransform: 'capitalize' }}>{invoice.order_type}</span>
+                                            {invoice.table_number && <><br />Table No: <strong>{invoice.table_number}</strong></>}
                                         </p>
                                     </div>
                                 </div>
@@ -485,6 +491,7 @@ export default function InvoicePage() {
                                     <p style={{ margin: '0.125rem 0' }}><strong>Phone:</strong> {invoice.customer_phone}</p>
                                     {invoice.customer_address && <p style={{ margin: '0.125rem 0' }}><strong>Address:</strong> {invoice.customer_address}</p>}
                                     <p style={{ margin: '0.125rem 0' }}><strong>Type:</strong> <span style={{ textTransform: 'capitalize' }}>{invoice.order_type}</span></p>
+                                    {invoice.table_number && <p style={{ margin: '0.125rem 0' }}><strong>Table:</strong> {invoice.table_number}</p>}
                                     <p style={{ margin: '0.125rem 0' }}><strong>Date:</strong> {new Date(invoice.order_date).toLocaleString()}</p>
                                     <p style={{ margin: '0.125rem 0' }}><strong>Payment:</strong> <span style={{ textTransform: 'capitalize' }}>{invoice.payment_method}</span></p>
                                     <div className="divider" style={{ borderTop: '1px dashed #000', margin: '0.5rem 0' }}></div>
