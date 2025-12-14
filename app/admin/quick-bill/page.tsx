@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
+import { ReceiptPrinter } from '@/lib/receipt-printer';
+
 interface MenuItem {
     id: number;
     name: string;
@@ -43,9 +45,26 @@ export default function QuickBillPage() {
     const [receiptData, setReceiptData] = useState<any>(null);
     const printRef = useRef<HTMLDivElement>(null);
 
+    // State
+    const [settings, setSettings] = useState<any>(null);
+    const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
+
     useEffect(() => {
         fetchMenuItems();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
 
     const fetchMenuItems = async () => {
         try {
@@ -106,6 +125,202 @@ export default function QuickBillPage() {
 
     const grandTotal = calculateTotal() + calculateTax();
 
+    // PRINTING LOGIC
+    const printReceiptFallback = (order: any, settings: any) => {
+        const printWindow = window.open('', '_blank', 'width=400,height=600');
+        if (!printWindow) {
+            alert('Please allow popups to print the receipt.');
+            return;
+        }
+
+        const itemsHtml = (Array.isArray(order.items) ? order.items : []).map((item: any) => {
+            const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
+            return `
+            <tr>
+                <td style="padding: 4px 0;">${item.menuItem.name}</td>
+                <td style="text-align: center; padding: 4px 0;">${item.quantity}</td>
+                <td style="text-align: right; padding: 4px 0;">${total}</td>
+            </tr>`;
+        }).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt #${order.id}</title>
+                <style>
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        font-family: 'Courier New', Courier, monospace;
+                        width: 72mm;
+                        margin: 0 auto;
+                        padding: 10px;
+                        font-size: 16px; 
+                        font-weight: bold;
+                        color: black;
+                    }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    .bold { font-weight: 900; }
+                    .header-large { font-size: 24px; font-weight: 900; }
+                    .header-medium { font-size: 18px; font-weight: 900; }
+                    .divider { border-top: 2px dashed black; margin: 8px 0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 16px; }
+                    th { border-bottom: 2px dashed black; padding-bottom: 4px; }
+                </style>
+            </head>
+            <body>
+                <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
+                
+                <div class="divider"></div>
+                
+                <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
+                <div>No: ${order.id}</div> 
+                <div>Date: ${new Date().toLocaleString()}</div>
+                
+                <div class="divider"></div>
+                
+                <div>Name: ${order.customer_name}</div>
+                <div>Phone: ${order.customer_phone}</div>
+                <div>Type: ${order.order_type.toUpperCase()}</div>
+                
+                <div class="divider"></div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                <div class="divider"></div>
+                
+                <div class="text-right">Subtotal: ${Number(order.subtotal).toFixed(2)}</div>
+                ${Number(order.tax_amount || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
+                
+                <div class="divider"></div>
+                <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
+                <br />
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        }, 500);
+    };
+
+    const handlePrintBill = async (order: any) => {
+        setPrintingOrderId(order.id);
+
+        try {
+            // @ts-ignore
+            if (!navigator.usb) {
+                // If WebUSB is not supported, fallback immediately
+                printReceiptFallback(order, settings);
+                return;
+            }
+
+            // @ts-ignore
+            const device = await navigator.usb.requestDevice({ filters: [] });
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+
+            const printer = new ReceiptPrinter();
+
+            // Header
+            printer.alignCenter();
+            printer.setSize(2, 2); // Double Width, Double Height
+            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
+            printer.textLine(settings?.restaurantAddress || '');
+            printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
+            if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
+            printer.feed(1);
+
+            // Title and Meta
+            printer.setSize(1, 2); // Double Height
+            printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
+            printer.bold(false);
+            printer.setSize(1, 1); // Normal
+
+            printer.textLine(`No: ${order.id}`);
+            printer.textLine(`Date: ${new Date().toLocaleString()}`);
+            printer.line('-');
+
+            // Customer
+            printer.alignLeft();
+            printer.textLine(`Name: ${order.customer_name}`);
+            printer.textLine(`Phone: ${order.customer_phone}`);
+            printer.textLine(`Type: ${order.order_type.toUpperCase()}`);
+            printer.line('-');
+
+            // Items
+            printer.textLine('ITEM             QTY      AMT');
+            printer.line('-');
+
+            if (Array.isArray(order.items)) {
+                order.items.forEach((item: any) => {
+                    const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
+                    const qty = item.quantity.toString().padStart(3, ' ');
+                    const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                    printer.setSize(1, 2); // Taller font for items
+                    printer.textLine(`${name} ${qty} ${total}`);
+                });
+            }
+            printer.setSize(1, 1);
+            printer.line('-');
+
+            // Totals
+            printer.alignRight();
+            printer.textLine(`Subtotal: ${Number(order.subtotal).toFixed(2)}`);
+            if (Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+
+            printer.setSize(2, 2); // Large Total
+            printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
+            printer.setSize(1, 1);
+            printer.feed(1);
+
+            // Footer
+            printer.alignCenter();
+            printer.textLine(settings?.footerText || 'Thank You!');
+            printer.feed(3);
+            printer.cut();
+
+            const data = printer.getData();
+            // @ts-ignore
+            await device.transferOut(1, data);
+            // @ts-ignore
+            await device.close();
+
+        } catch (error: any) {
+            console.warn('USB Bill Print failed, falling back:', error);
+            printReceiptFallback(order, settings);
+        } finally {
+            setPrintingOrderId(null);
+        }
+    };
+
+
     // Handlers
     const handleBillAction = async (action: 'print' | 'whatsapp' | 'save') => {
         if (cart.length === 0) return alert('Cart is empty!');
@@ -141,9 +356,19 @@ export default function QuickBillPage() {
                 const order = data.data;
 
                 if (action === 'print') {
-                    setReceiptData(order);
-                    // Wait for state update then print
-                    setTimeout(() => window.print(), 100);
+                    // Compose printing object
+                    const printableOrder = {
+                        ...order,
+                        items: cart,
+                        customer_name: customerName || 'Walk-in Customer',
+                        customer_phone: customerPhone || 'N/A',
+                        order_type: 'takeaway',
+                        total_amount: grandTotal,
+                        subtotal: calculateTotal(),
+                        tax_amount: calculateTax(),
+                        discount_amount: 0
+                    };
+                    await handlePrintBill(printableOrder);
                 } else if (action === 'whatsapp') {
                     sendWhatsApp(order);
                 } else {
@@ -321,75 +546,6 @@ export default function QuickBillPage() {
                     </div>
                 </div>
             </div>
-
-            {/* PRINT RECEIPT TEMPLATE (Hidden unless printing) */}
-            {receiptData && (
-                <div id="receipt-area" style={{ display: 'none' }}>
-                    <style>{`
-                        @media print {
-                            body * { visibility: hidden; }
-                            #receipt-area, #receipt-area * { visibility: visible; }
-                            #receipt-area {
-                                position: absolute;
-                                left: 0;
-                                top: 0;
-                                width: 80mm; /* Thermal paper width */
-                                padding: 5px;
-                                font-family: 'Courier New', Courier, monospace;
-                                font-size: 12px;
-                                display: block !important;
-                                color: black;
-                                background: white;
-                            }
-                            .no-print { display: none !important; }
-                            .glass-card { box-shadow: none; border: none; background: none; }
-                        }
-                    `}</style>
-                    <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                        <h2 style={{ margin: '5px 0' }}>Ruchi Restaurant</h2>
-                        <p style={{ margin: 0 }}>Tel: +91 9876543210</p>
-                        <p style={{ margin: 0 }}>Date: {new Date().toLocaleString()}</p>
-                        <hr style={{ borderTop: '1px dashed black', margin: '10px 0' }} />
-                    </div>
-
-                    <div>
-                        <p><strong>Order #: {receiptData.invoice_number}</strong></p>
-                        <p>Customer: {receiptData.customer_name}</p>
-                    </div>
-                    <hr style={{ borderTop: '1px dashed black' }} />
-
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px' }}>
-                        <thead>
-                            <tr style={{ textAlign: 'left' }}>
-                                <th>Item</th>
-                                <th style={{ textAlign: 'right' }}>Qty</th>
-                                <th style={{ textAlign: 'right' }}>Price</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {receiptData.items && JSON.parse(JSON.stringify(receiptData.items)).map((item: any, i: number) => (
-                                <tr key={i}>
-                                    <td>{item.menuItem.name}</td>
-                                    <td style={{ textAlign: 'right' }}>{item.quantity}</td>
-                                    <td style={{ textAlign: 'right' }}>{(item.menuItem.price * item.quantity).toFixed(0)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <hr style={{ borderTop: '1px dashed black' }} />
-
-                    <div style={{ textAlign: 'right', lineHeight: '1.5' }}>
-                        <p style={{ margin: 0 }}>Subtotal: {Number(receiptData.subtotal).toFixed(2)}</p>
-                        <p style={{ margin: 0 }}>Tax: {Number(receiptData.tax).toFixed(2)}</p>
-                        <h3 style={{ margin: '5px 0' }}>Total: ₹{Number(receiptData.total_amount).toFixed(2)}</h3>
-                    </div>
-
-                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                        <p>*** Thank You Visit Again ***</p>
-                    </div>
-                </div>
-            )}
         </main>
     );
 }
