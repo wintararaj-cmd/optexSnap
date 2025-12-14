@@ -22,12 +22,16 @@ interface InvoiceData {
     order_date: string;
 }
 
+
+import { ReceiptPrinter } from '@/lib/receipt-printer';
+
 export default function InvoicePage() {
     const router = useRouter();
     const params = useParams();
     const [invoice, setInvoice] = useState<InvoiceData | null>(null);
     const [loading, setLoading] = useState(true);
     const [settings, setSettings] = useState<any>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
@@ -91,6 +95,104 @@ export default function InvoicePage() {
 
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleRawPrint = async () => {
+        if (!invoice) return;
+        setIsPrinting(true);
+
+        try {
+            // @ts-ignore - Navigator.usb is experimental and may not be in TS definitions
+            if (!navigator.usb) {
+                alert('WebUSB is not supported in this browser. Please use Chrome or Edge.');
+                return;
+            }
+
+            // Request device - filtered for common thermal printers if possible, or accept all
+            // @ts-ignore
+            const device = await navigator.usb.requestDevice({ filters: [] });
+
+            await device.open();
+            await device.selectConfiguration(1);
+            await device.claimInterface(0);
+
+            const printer = new ReceiptPrinter();
+
+            // Header
+            printer.alignCenter();
+            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(false);
+            printer.textLine(settings?.restaurantAddress || '');
+            printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
+            if (settings?.gstNumber) printer.textLine(`GST: ${settings.gstNumber}`);
+            printer.feed(1);
+
+            // Title and Meta
+            printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
+            printer.bold(false);
+            printer.textLine(`No: ${invoice.invoice_number}`);
+            printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
+            printer.line('-');
+
+            // Customer
+            printer.alignLeft();
+            printer.textLine(`Name: ${invoice.customer_name}`);
+            printer.textLine(`Phone: ${invoice.customer_phone}`);
+            if (invoice.customer_address) printer.textLine(`Addr: ${invoice.customer_address}`);
+            printer.textLine(`Type: ${invoice.order_type.toUpperCase()}`);
+            printer.line('-');
+
+            // Items
+            // Assuming 32 chars width for 58mm or 48 for 80mm. Let's aim for a responsive-ish layout or standard 48 column.
+            // Simple Item | Qty | Amt layout
+            printer.textLine('ITEM             QTY      AMT');
+            printer.line('-');
+
+            invoice.items.forEach((item: any) => {
+                const name = item.menuItem.name.substring(0, 16).padEnd(16, ' ');
+                const qty = item.quantity.toString().padStart(3, ' ');
+                const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
+                printer.textLine(`${name} ${qty} ${total}`);
+            });
+            printer.line('-');
+
+            // Totals
+            printer.alignRight();
+            printer.textLine(`Subtotal: ${Number(invoice.subtotal).toFixed(2)}`);
+            if (Number(invoice.tax) > 0) printer.textLine(`Tax: ${Number(invoice.tax).toFixed(2)}`);
+            if (Number(invoice.discount) > 0) printer.textLine(`Discount: -${Number(invoice.discount).toFixed(2)}`);
+
+            printer.bold(true).textLine(`TOTAL: ${Number(invoice.total).toFixed(2)}`).bold(false);
+            printer.feed(1);
+
+            // Footer
+            printer.alignCenter();
+            printer.textLine(settings?.footerText || 'Thank You!');
+            printer.feed(3);
+            printer.cut();
+
+            const data = printer.getData();
+
+            // Transfer to endpoint 1 (usually OUT endpoint)
+            // We might need to find the correct endpoint, but 1 is standard for many
+            // @ts-ignore
+            await device.transferOut(1, data);
+
+            // @ts-ignore
+            await device.close();
+
+        } catch (error: any) {
+            console.error('Printing error:', error);
+            if (error.name === 'SecurityError') {
+                alert('Access denied. Please ensure you have permission to access the USB device.');
+            } else if (error.message && error.message.includes('claimInterface')) {
+                alert('Could not claim printer interface. Standard Windows drivers might be blocking access. Try using Zadig to install WinUSB driver for this printer, or use standard browser print.');
+            } else {
+                alert(`Print failed: ${error.message || error}`);
+            }
+        } finally {
+            setIsPrinting(false);
+        }
     };
 
     const handleWhatsAppShare = () => {
@@ -174,12 +276,20 @@ export default function InvoicePage() {
                         display: none !important;
                     }
 
-                    /* Global resets to ensure pure white background */
+                    /* Global resets to ensure pure white background and pure black text */
                     body {
                         background: white !important;
                         color: black !important;
                         margin: 0 !important;
                         padding: 0 !important;
+                        -webkit-font-smoothing: none !important;
+                        -moz-osx-font-smoothing: none !important;
+                        text-rendering: optimizeSpeed !important;
+                    }
+
+                    /* Increase contrast for thermal printers */
+                    body * {
+                         filter: contrast(200%) grayscale(100%);
                     }
                     
                     /* Hide the background pattern pseudo-element */
@@ -209,8 +319,9 @@ export default function InvoicePage() {
                         /* Thermal Receipt Container */
                         .thermal-receipt {
                             width: ${settings?.paperWidth === '58mm' ? '58mm' : '80mm'} !important;
-                            font-family: 'Courier New', Courier, monospace !important; /* Monospace for text-only look */
-                            font-size: 12px !important;
+                            font-family: 'Courier New', Courier, monospace !important; 
+                            font-size: 14px !important; /* Slightly larger for better clarity */
+                            font-weight: 700 !important; /* Force bold */
                             line-height: 1.2 !important;
                             padding: 2mm !important;
                             margin: 0 auto !important;
@@ -226,14 +337,14 @@ export default function InvoicePage() {
 
                         /* Header styling for thermal */
                         .thermal-receipt h1 {
-                            font-size: 16px !important;
-                            font-weight: bold !important;
+                            font-size: 18px !important;
+                            font-weight: 900 !important; /* Extra bold */
                             margin: 0 0 5px 0 !important;
                             text-transform: uppercase;
                         }
                         
                         .thermal-receipt h2, .thermal-receipt h3 {
-                            font-size: 13px !important;
+                            font-size: 15px !important;
                             font-weight: bold !important;
                             margin: 5px 0 !important;
                         }
@@ -241,52 +352,53 @@ export default function InvoicePage() {
                         /* Table styling */
                         .thermal-receipt table {
                             width: 100% !important;
-                            font-size: 12px !important;
+                            font-size: 14px !important;
                             border-collapse: collapse !important;
                         }
                         
                         .thermal-receipt th {
                             text-align: left;
-                            border-bottom: 1px dashed black !important;
+                            border-bottom: 2px dashed black !important;
                             padding: 2px 0 !important;
-                            font-weight: bold;
+                            font-weight: 900 !important;
                         }
                         
                         .thermal-receipt td {
                             padding: 2px 0 !important;
+                            font-weight: 700 !important;
                         }
 
 
                         /* Dividers */
                         .thermal-receipt .divider {
-                            border-top: 1px dashed black !important;
+                            border-top: 2px dashed black !important;
                             margin: 5px 0 !important;
                             opacity: 1 !important;
                         }
                         
                         /* Force visibility of the invoice container and its parents */
-                        /* We saw an issue where 'div.fade-in' was being hidden because it wasn't the invoice container directly */
                         .invoice-container {
                             display: block !important;
                             visibility: visible !important;
                         }
-                        
-                        /* Hide only specific known non-printable areas if they aren't already hidden by no-print */
-                        /* (The no-print class handles most UI elements) */
                      ` : ''}
                 }
             `}</style>
 
             <main className="container" style={{ padding: '2rem 1.5rem' }}>
                 <div className="fade-in">
-                    <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                    <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <h1>Invoice Details</h1>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                            <button onClick={handleRawPrint} className="btn btn-warning" disabled={isPrinting}>
+                                {isPrinting ? 'Printing...' : '🔌 USB Raw Print'}
+                            </button>
+
                             <button onClick={handleWhatsAppShare} className="btn btn-secondary">
                                 📱 Send via WhatsApp
                             </button>
                             <button onClick={handlePrint} className="btn btn-primary">
-                                🖨️ Print Invoice
+                                🖨️ Browser Print
                             </button>
                             <button onClick={() => router.push('/admin/orders')} className="btn btn-ghost">
                                 ← Back to Orders
