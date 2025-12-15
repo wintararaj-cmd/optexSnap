@@ -207,8 +207,8 @@ export default function InvoicePage() {
 
         const itemsHtml = invoice.items.map((item: any) => `
             <tr>
-                <td style="padding: 2px 0;">${item.menuItem.name}</td>
-                <td style="text-align: right; padding: 2px 0;">${item.quantity}</td>
+                <td>${item.menuItem.name}</td>
+                <td style="text-align: right;">${item.quantity}</td>
             </tr>
         `).join('');
 
@@ -218,13 +218,14 @@ export default function InvoicePage() {
             <head>
                 <title>KOT #${invoice.order_id}</title>
                 <style>
-                    @page { margin: 0; size: 80mm auto; }
+                    @page { margin: 0; size: auto; }
                     body {
                         font-family: 'Courier New', Courier, monospace;
-                        width: 72mm;
-                        margin: 0 auto;
-                        padding: 10px;
-                        font-size: 16px; /* Increased from 14px */
+                        width: 100%;
+                        margin: 0;
+                        padding: 5px;
+                        box-sizing: border-box;
+                        font-size: 16px;
                         font-weight: bold;
                         color: black;
                     }
@@ -233,7 +234,7 @@ export default function InvoicePage() {
                     .bold { font-weight: 900; }
                     .divider { border-top: 2px dashed black; margin: 5px 0; }
                     table { width: 100%; border-collapse: collapse; }
-                    td { padding: 4px 0; font-weight: 900; font-size: 18px; } /* Bold and larger items */
+                    td { padding: 1px 0; font-weight: 900; font-size: 18px; line-height: 1.0; }
                 </style>
             </head>
             <body>
@@ -247,11 +248,11 @@ export default function InvoicePage() {
                 
                 <div class="divider"></div>
                 
-                <table>
+                <table style="width: 100%;">
                     <thead>
                         <tr>
                             <th style="text-align: left; font-size: 18px;">ITEM</th>
-                            <th style="text-align: right; font-size: 18px;">QTY</th>
+                            <th style="text-align: right; font-size: 18px; width: 40px;">QTY</th>
                         </tr>
                     </thead>
                     <tbody>
