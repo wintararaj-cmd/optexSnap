@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// using native fetch
 
 async function testDeliveryLocationAPI() {
     console.log('🧪 Testing Delivery Location API...\n');

@@ -38,6 +38,7 @@ export default function SalesmanDashboard() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [showCartMobile, setShowCartMobile] = useState(false);
+    const [settings, setSettings] = useState<any>(null);
 
     // Order Details
     const [orderType, setOrderType] = useState<'dine-in' | 'takeaway'>('dine-in');
@@ -56,6 +57,22 @@ export default function SalesmanDashboard() {
             fetchPendingOrders();
         }
     }, [user]);
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.success) {
+                setSettings(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    };
 
     const fetchMenuItems = async () => {
         try {
@@ -153,6 +170,9 @@ export default function SalesmanDashboard() {
     };
 
     const calculateTax = () => {
+        if (settings && (settings.gstType === 'unregistered' || settings.gstType === 'composite')) {
+            return 0;
+        }
         return cart.reduce((sum, item) => {
             const taxRate = (item.menuItem.gst_rate || 5) / 100;
             return sum + (Number(item.menuItem.price) * item.quantity * taxRate);

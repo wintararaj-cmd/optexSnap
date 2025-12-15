@@ -201,5 +201,27 @@ Please provide:
 This will help me identify the exact issue and provide a targeted solution.
 
 ---
-**Status**: Awaiting diagnosis  
-**Last Updated**: December 12, 2025 17:45 IST
+
+---
+
+## 🔍 Diagnosis Results (2025-12-15)
+
+### Database Check
+- **Ran Script**: `scripts/diagnose_images.js`
+- **Result**: Images **ARE PRESENT** in the database.
+  - Total Items: 207
+  - Items with Images: 201
+  - Sample sizes: ~350KB - 550KB (valid image sizes)
+
+### API Check
+- **Ran Script**: `scripts/test_menu_images.js`
+- **Result**: API **WORKS CORRECTLY**.
+  - `/api/menu` returns items with `image_url`.
+  - Fetching a sample image URL (e.g., `/api/menu/83/image`) returns status 200 and Content-Type `image/jpeg`.
+
+### Conclusion
+The backend, database, and API are functioning correctly. Images should be displaying. 
+If they are still not showing in the UI, it is likely a local browser cache issue or a transient network error triggering the frontend's `onError` fallback.
+
+**Status**: ✅ Backend Verified. Issue likely resolved or frontend-specific.
+

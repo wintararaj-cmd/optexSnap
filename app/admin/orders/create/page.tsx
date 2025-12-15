@@ -62,7 +62,7 @@ export default function CreateOrderPage() {
         const loadData = async () => {
             try {
                 // Fetch Settings
-                fetchSettings();
+                await fetchSettings();
 
                 // Fetch Menu
                 const menuRes = await fetch('/api/menu?available=true');
@@ -94,10 +94,12 @@ export default function CreateOrderPage() {
             const data = await response.json();
             if (data.success) {
                 setSettings(data.data);
+                return data.data;
             }
         } catch (error) {
             console.error('Error fetching settings:', error);
         }
+        return null;
     };
 
 
@@ -131,10 +133,17 @@ export default function CreateOrderPage() {
     // Calculations
     const calculateSubtotal = () => cart.reduce((sum, item) => sum + (Number(item.menuItem.price) * item.quantity), 0);
 
-    const calculateTax = () => cart.reduce((sum, item) => {
-        const taxRate = (item.menuItem.gst_rate || 5) / 100;
-        return sum + (Number(item.menuItem.price) * item.quantity * taxRate);
-    }, 0);
+    const calculateTax = () => {
+        // If settings are not loaded yet or GST type is unregistered/composite (Bill of Supply), no tax is applicable
+        if (!settings || settings.gstType === 'unregistered' || settings.gstType === 'composite') {
+            return 0;
+        }
+
+        return cart.reduce((sum, item) => {
+            const taxRate = (item.menuItem.gst_rate || 5) / 100;
+            return sum + (Number(item.menuItem.price) * item.quantity * taxRate);
+        }, 0);
+    };
 
     const getDeliveryCharge = () => {
         if (orderType !== 'delivery' || !selectedLocationId) return 0;
@@ -224,8 +233,8 @@ export default function CreateOrderPage() {
                 </table>
                 <div class="divider"></div>
                 
-                <div class="text-right">Subtotal: ${Number(order.total_amount).toFixed(2)}</div>
-                ${Number(order.tax_amount || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                <div class="text-right">Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}</div>
+                ${(settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
                 ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
@@ -320,8 +329,8 @@ export default function CreateOrderPage() {
 
             // Totals
             printer.alignRight();
-            printer.textLine(`Subtotal: ${Number(order.total_amount).toFixed(2)}`);
-            if (Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            printer.textLine(`Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}`);
+            if (settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
             if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
 
             printer.setSize(2, 2); // Large Total
