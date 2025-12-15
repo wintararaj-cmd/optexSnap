@@ -224,7 +224,7 @@ export default function InvoicePage() {
                         width: 72mm;
                         margin: 0 auto;
                         padding: 10px;
-                        font-size: 14px;
+                        font-size: 16px; /* Increased from 14px */
                         font-weight: bold;
                         color: black;
                     }
@@ -233,15 +233,16 @@ export default function InvoicePage() {
                     .bold { font-weight: 900; }
                     .divider { border-top: 2px dashed black; margin: 5px 0; }
                     table { width: 100%; border-collapse: collapse; }
+                    td { padding: 4px 0; font-weight: 900; font-size: 18px; } /* Bold and larger items */
                 </style>
             </head>
             <body>
-                <div class="text-center bold" style="font-size: 16px;">KITCHEN ORDER TICKET</div>
+                <div class="text-center bold" style="font-size: 20px;">KITCHEN ORDER TICKET</div>
                 <div class="divider"></div>
                 
-                <div>Order #: ${invoice.order_id}</div>
-                <div>Type: ${invoice.order_type.toUpperCase()}</div>
-                ${invoice.table_number ? `<div>Table No: ${invoice.table_number}</div>` : ''}
+                <div style="font-size: 18px;">Order #: ${invoice.order_id}</div>
+                <div style="font-weight: 900; font-size: 18px;">Type: ${invoice.order_type.toUpperCase()}</div>
+                ${invoice.table_number ? `<div style="font-weight: 900; font-size: 20px;">Table No: ${invoice.table_number}</div>` : ''}
                 <div>Date: ${new Date(invoice.order_date).toLocaleString()}</div>
                 
                 <div class="divider"></div>
@@ -249,8 +250,8 @@ export default function InvoicePage() {
                 <table>
                     <thead>
                         <tr>
-                            <th style="text-align: left;">ITEM</th>
-                            <th style="text-align: right;">QTY</th>
+                            <th style="text-align: left; font-size: 18px;">ITEM</th>
+                            <th style="text-align: right; font-size: 18px;">QTY</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -308,7 +309,12 @@ export default function InvoicePage() {
             invoice.items.forEach((item: any) => {
                 const name = item.menuItem.name.substring(0, 24).padEnd(24, ' ');
                 const qty = item.quantity.toString().padStart(3, ' ');
+
+                printer.setSize(1, 2); // Double Height for visibility
+                printer.bold(true);    // Bold on
                 printer.textLine(`${name} ${qty}`);
+                printer.bold(false);   // Bold off
+                printer.setSize(1, 1); // Reset
             });
 
             printer.feed(3);
