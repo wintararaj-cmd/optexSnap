@@ -2,6 +2,11 @@
 
 > **Welcome to Ruchi!** Your complete guide to managing your restaurant operations efficiently.
 
+> **📖 Additional Resources:**
+> - 🚀 [Quick Start Guide](QUICK_START_GUIDE.md) - Get started in 15 minutes
+> - 📋 [Standard Operating Procedures](STANDARD_OPERATING_PROCEDURES.md) - Daily operations SOPs
+> - 🔧 [Menu Management Enhancements](MENU_MANAGEMENT_ENHANCEMENTS.md) - Latest features
+
 ---
 
 ## 📖 Table of Contents
@@ -138,30 +143,79 @@
   - Availability status
   - Action buttons
 
+#### **🔍 Searching Menu Items** ✨ NEW
+1. Use the **search bar** at the top of the menu page
+2. Search by:
+   - 📝 Item name
+   - 📄 Description
+   - 📂 Category name
+3. Results update in real-time as you type
+4. View the count of matching items below the search bar
+5. Clear search to view all items again
+
+**Search Tips:**
+- Search is case-insensitive
+- Partial matches are supported
+- Use category names to filter by category
+- Combine keywords for better results
+
 #### **Adding New Menu Item**
-1. Click **"Add New Item"** button
+1. Click **"+ Add Item"** button
 2. Fill in the form:
-   - 📝 **Name**: Item name
-   - 💰 **Price**: Item price
-   - 📂 **Category**: Select from dropdown
-   - 📄 **Description**: Brief description
-   - 🖼️ **Image**: Upload item image
-   - ✅ **Available**: Toggle availability
-3. Click **"Save"** or **"Add Item"**
+   - 📝 **Name**: Item name (required)
+   - 💰 **Price**: Item price in ₹ (required)
+   - 📂 **Category**: Select from dropdown (required)
+   - 📄 **Description**: Brief description (optional)
+   - 📊 **GST Rate**: Select applicable GST rate (default: 5%)
+   - 🖼️ **Product Image**: Upload item image (optional)
+   - ✅ **Available**: Check to make item available for ordering
+3. **Image Upload**:
+   - Click **"Choose File"** or drag and drop
+   - Supported formats: JPG, PNG, GIF, WebP
+   - Recommended size: 800x800 pixels or higher
+   - Maximum file size: 5MB
+   - Preview appears below the upload field
+4. Click **"Add Item"** to save
+
+**Image Upload Tips:**
+- Use high-quality, well-lit food photos
+- Square images work best (1:1 aspect ratio)
+- Compress large images before uploading
+- Images are automatically optimized and stored
 
 #### **Editing Menu Items**
 1. Click **"Edit"** button on any item
-2. Modify fields as needed
-3. Click **"Update"** to save changes
+2. Modify fields as needed:
+   - Update name, price, description
+   - Change category
+   - Adjust GST rate
+   - **Upload new image** or keep existing one
+3. **Changing Images**:
+   - Current image preview is shown
+   - Select new file to replace existing image
+   - Leave file input empty to keep current image
+   - New image will replace old one upon saving
+4. Click **"Update Item"** to save changes
+
+**Important Notes:**
+- ✅ Image upload now works correctly for both add and edit operations
+- ✅ Existing images are preserved when editing without uploading new image
+- ✅ All changes are saved immediately to the database
 
 #### **Deleting Menu Items**
 1. Click **"Delete"** button
 2. Confirm deletion in popup
-3. Item removed from menu
+3. Item removed from menu permanently
+4. Associated image is also removed
+
+⚠️ **Warning**: Deleted items cannot be recovered. Consider marking items as "unavailable" instead.
 
 #### **Toggle Availability**
-- Click the **availability toggle** to mark items as available/unavailable
+- Click the **"Enable/Disable"** button to toggle availability
+- Available items show with green badge
+- Unavailable items show with red badge
 - Unavailable items won't show to customers
+- Use this for seasonal items or temporary stock-outs
 
 ### Category Management
 
@@ -757,5 +811,6 @@ Thank you for using **Ruchi Restaurant Management System**! This comprehensive p
 
 **Happy Managing! 🎉**
 
-*Last Updated: December 2025*
-*Version: 2.0*
+*Last Updated: December 16, 2025*  
+*Version: 2.1 - Added search functionality and fixed image upload*
+
