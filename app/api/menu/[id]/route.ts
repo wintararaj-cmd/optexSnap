@@ -73,49 +73,78 @@ export async function PUT(
         }
 
         // Handle image data if provided (base64 -> buffer)
-        let imageBuffer = undefined; // undefined means "do not update" in COALESCE, null means "set to null"? No, COALESCE(undefined, old) works. 
-        // Wait, COALESCE($6, image_data) implies if $6 is null, keep old.
-        // If user wants to DELETE image, they might send null. 
-        // But usually in this form, if image_data is provided, we update it.
-        // If not provided (undefined), we keep old.
+        let imageBuffer: Buffer | null | undefined = undefined;
+        let imageTypeToUse = image_type;
 
         if (image_data && typeof image_data === 'string') {
+            // New image provided - convert base64 to buffer
             const base64Data = image_data.replace(/^data:image\/\w+;base64,/, '');
             imageBuffer = Buffer.from(base64Data, 'base64');
         } else if (image_data === null) {
-            // Explicit null to remove image? 
+            // Explicit null to remove image
             imageBuffer = null;
-            // Note: COALESCE($6, image_data) will ignore null if we pass null!
-            // So if we want to delete, we need logic. 
-            // For now, let's assume if image_data is sent, it's a new image. If undefined, ignore.
+            imageTypeToUse = null;
+        }
+        // If image_data is undefined, we don't update the image (keep existing)
+
+        // Build dynamic query based on what fields are provided
+        const updates: string[] = [];
+        const values: any[] = [];
+        let paramCount = 1;
+
+        if (name !== undefined) {
+            updates.push(`name = $${paramCount}`);
+            values.push(name);
+            paramCount++;
+        }
+        if (description !== undefined) {
+            updates.push(`description = $${paramCount}`);
+            values.push(description);
+            paramCount++;
+        }
+        if (category_id !== undefined) {
+            updates.push(`category_id = $${paramCount}`);
+            values.push(category_id);
+            paramCount++;
+        }
+        if (price !== undefined) {
+            updates.push(`price = $${paramCount}`);
+            values.push(price);
+            paramCount++;
+        }
+        if (gst_rate !== undefined) {
+            updates.push(`gst_rate = $${paramCount}`);
+            values.push(gst_rate);
+            paramCount++;
+        }
+        if (imageBuffer !== undefined) {
+            updates.push(`image_data = $${paramCount}`);
+            values.push(imageBuffer);
+            paramCount++;
+        }
+        if (imageTypeToUse !== undefined && imageBuffer !== undefined) {
+            updates.push(`image_type = $${paramCount}`);
+            values.push(imageTypeToUse);
+            paramCount++;
+        }
+        if (available !== undefined) {
+            updates.push(`available = $${paramCount}`);
+            values.push(available);
+            paramCount++;
         }
 
-        // If imageBuffer is undefined, we pass null to parameter? No, passing undefined to pg might be error.
-        // We should handle the SQL dynamically or pass a value that COALESCE treats as "skip".
-        // In PG, COALESCE(NULL, col) returns col. So passing NULL skips update.
-        // So imageBuffer = null by default is correct for "skip".
+        // Always update the timestamp
+        updates.push('updated_at = CURRENT_TIMESTAMP');
 
-        // However, if we actually want to update it to new image, `imageBuffer` will be a Buffer.
-        // If we want to strictly keep logic simple:
-        const bufferToUse = imageBuffer !== undefined ? imageBuffer : null;
-        // Wait, if imageBuffer is Buffer, that's fine. If it's null (default), COALESCE sees NULL and keeps old value.
-
-        // What if user wants to delete image? We don't have that feature yet in UI.
+        // Add the ID parameter
+        values.push(params.id);
 
         const result = await query(
             `UPDATE menu_items 
-       SET name = COALESCE($1, name),
-           description = COALESCE($2, description),
-           category_id = COALESCE($3, category_id),
-           price = COALESCE($4, price),
-           gst_rate = COALESCE($5, gst_rate),
-           image_data = COALESCE($6, image_data),
-           image_type = COALESCE($7, image_type),
-           available = COALESCE($8, available),
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9
+       SET ${updates.join(', ')}
+       WHERE id = $${paramCount}
        RETURNING id, name, description, category_id, price, gst_rate, image_type, available, created_at, updated_at`,
-            [name, description, category_id, price, gst_rate, imageBuffer === undefined ? null : imageBuffer, image_type, available, params.id]
+            values
         );
 
         if (result.rows.length === 0) {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MenuItem } from '@/types';
 
 // Extended interface for frontend usage (since API returns image_url)
-interface MenuItemWithUrl extends MenuItem {
+interface MenuItemWithUrl extends Omit<MenuItem, 'image_url'> {
     image_url?: string | null;
 }
 
@@ -15,6 +15,7 @@ export default function AdminMenuPage() {
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MenuItemWithUrl | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -184,6 +185,17 @@ export default function AdminMenuPage() {
         );
     }
 
+    // Filter menu items based on search query
+    const filteredMenuItems = menuItems.filter(item => {
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            item.name.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query) ||
+            (item.category_name && item.category_name.toLowerCase().includes(query))
+        );
+    });
+
     return (
         <main className="container" style={{ padding: '2rem 1.5rem' }}>
             <div className="fade-in">
@@ -202,8 +214,30 @@ export default function AdminMenuPage() {
                     </div>
                 </div>
 
+                {/* Search Bar */}
+                <div style={{ marginBottom: '2rem' }}>
+                    <input
+                        type="text"
+                        className="input"
+                        placeholder="🔍 Search menu items by name, description, or category..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                            width: '100%',
+                            maxWidth: '600px',
+                            fontSize: '1rem',
+                            padding: '0.875rem 1rem'
+                        }}
+                    />
+                    {searchQuery && (
+                        <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                            Found {filteredMenuItems.length} item{filteredMenuItems.length !== 1 ? 's' : ''}
+                        </p>
+                    )}
+                </div>
+
                 <div className="grid grid-3">
-                    {menuItems.map((item) => (
+                    {filteredMenuItems.map((item) => (
                         <div key={item.id} className="glass-card">
                             <div style={{
                                 width: '100%',
