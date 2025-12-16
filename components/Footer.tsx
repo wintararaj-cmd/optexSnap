@@ -17,6 +17,10 @@ export default function Footer() {
                             style={{ objectFit: 'contain' }}
                         />
                     </div>
+                    <span className="text-muted">•</span>
+                    <a href="/help" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem' }}>
+                        📚 Help & Documentation
+                    </a>
                 </div>
             </div>
             <style jsx>{`

@@ -62,6 +62,14 @@ export default function Navbar() {
                         {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                     </Link>
 
+                    <Link
+                        href="/help"
+                        className={`navbar-link ${isActive('/help') ? 'active' : ''}`}
+                        title="Help & Documentation"
+                    >
+                        📚 Help
+                    </Link>
+
                     {/* Theme Toggle Button */}
                     <button
                         onClick={toggleTheme}
