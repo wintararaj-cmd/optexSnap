@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS delivery_locations (
 -- ============================================
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
+    order_number VARCHAR(20) UNIQUE, -- Daily sequential number: YYYYMMDD-XXX
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     customer_name VARCHAR(255), -- Optional for walk-in dine-in/takeaway orders
     customer_email VARCHAR(255),
@@ -205,6 +206,7 @@ CREATE INDEX IF NOT EXISTS idx_delivery_locations_active ON delivery_locations(i
 
 -- Orders indexes
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);

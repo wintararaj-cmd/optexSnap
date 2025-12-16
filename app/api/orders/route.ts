@@ -98,11 +98,26 @@ export async function POST(request: Request) {
             }
         }
 
+        // Generate daily sequential order number
+        const today = new Date();
+        const datePrefix = today.toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD format
+
+        // Get count of orders created today for sequential numbering
+        const orderCountResult = await query(
+            `SELECT COUNT(*) as count FROM orders 
+             WHERE order_number LIKE $1 
+             AND DATE(created_at) = CURRENT_DATE`,
+            [`${datePrefix}-%`]
+        );
+        const orderCount = parseInt(orderCountResult.rows[0].count) + 1;
+        const orderNumber = `${datePrefix}-${String(orderCount).padStart(3, '0')}`; // Format: YYYYMMDD-XXX
+
         const result = await query(
-            `INSERT INTO orders (user_id, customer_name, customer_phone, customer_address, order_type, items, subtotal, tax, discount, delivery_location_id, delivery_charge, total_amount, payment_method, notes, table_number, order_status, payment_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            `INSERT INTO orders (order_number, user_id, customer_name, customer_phone, customer_address, order_type, items, subtotal, tax, discount, delivery_location_id, delivery_charge, total_amount, payment_method, notes, table_number, order_status, payment_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
        RETURNING *`,
             [
+                orderNumber,
                 user_id || null,
                 customer_name || 'Walk-in Customer',
                 customer_phone || 'N/A',
