@@ -62,12 +62,17 @@ export default function Navbar() {
                         {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                     </Link>
 
+                    {/* Help Button - Icon Only for Space Efficiency */}
                     <Link
                         href="/help"
-                        className={`navbar-link ${isActive('/help') ? 'active' : ''}`}
+                        className="theme-toggle"
                         title="Help & Documentation"
+                        style={{
+                            textDecoration: 'none',
+                            fontSize: '1.25rem'
+                        }}
                     >
-                        📚 Help
+                        📚
                     </Link>
 
                     {/* Theme Toggle Button */}
