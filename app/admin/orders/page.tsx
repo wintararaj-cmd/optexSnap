@@ -153,7 +153,7 @@ export default function AdminOrdersPage() {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Receipt #${order.id}</title>
+                <title>Receipt #${order.order_number || order.id}</title>
                 <style>
                     @page { margin: 0; size: 80mm auto; }
                     body {
@@ -184,7 +184,7 @@ export default function AdminOrdersPage() {
                 <div class="divider"></div>
                 
                 <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
-                <div>No: ${order.id}</div> 
+                <div>No: ${order.order_number || order.id}</div> 
                 <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
                 ${order.table_number ? `<div class="bold" style="font-size: 18px;">Table No: ${order.table_number}</div>` : ''}
                 
@@ -272,7 +272,7 @@ export default function AdminOrdersPage() {
             printer.bold(false);
             printer.setSize(1, 1); // Normal
 
-            printer.textLine(`No: ${order.id}`);
+            printer.textLine(`No: ${order.order_number || order.id}`);
             printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
             if (order.table_number) {
                 printer.setSize(2, 2);
@@ -389,7 +389,7 @@ export default function AdminOrdersPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                                 <div>
                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ margin: 0 }}>Order #{order.id}</h3>
+                                        <h3 style={{ margin: 0 }}>Order #{order.order_number || order.id}</h3>
                                         <span className="badge" style={{
                                             background: order.order_type === 'takeaway' ? 'var(--success)' : 'var(--info)',
                                             color: 'white',
@@ -422,7 +422,7 @@ export default function AdminOrdersPage() {
                                         <button
                                             onClick={() => {
                                                 const phoneNumber = order.customer_phone.replace(/\D/g, '');
-                                                const message = `Hello ${order.customer_name}! 👋\n\nYour order #${order.id} is being processed.\n\nTotal Amount: ₹${parseFloat(order.total_amount).toFixed(2)}\n\nView your invoice: ${window.location.origin}/admin/invoices/${order.id}\n\nThank you for ordering from us! 🙏`;
+                                                const message = `Hello ${order.customer_name}! 👋\n\nYour order #${order.order_number || order.id} is being processed.\n\nTotal Amount: ₹${parseFloat(order.total_amount).toFixed(2)}\n\nView your invoice: ${window.location.origin}/admin/invoices/${order.id}\n\nThank you for ordering from us! 🙏`;
                                                 const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
                                                 window.open(whatsappUrl, '_blank');
                                             }}
