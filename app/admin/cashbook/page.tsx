@@ -44,12 +44,16 @@ export default function CashBookPage() {
     const fetchCashTransactions = async () => {
         try {
             // Fetch orders for cash sales
-            const response = await fetch('/api/orders');
-            const data = await response.json();
+            const ordersResponse = await fetch('/api/orders');
+            const ordersData = await ordersResponse.json();
 
-            if (data.success) {
+            // Fetch expenses from database
+            const expensesResponse = await fetch('/api/expenses');
+            const expensesData = await expensesResponse.json();
+
+            if (ordersData.success) {
                 // Filter cash transactions
-                const cashSales = data.data
+                const cashSales = ordersData.data
                     .filter((order: any) => order.payment_method === 'cash')
                     .map((order: any) => ({
                         id: `sale-${order.id}`,
@@ -60,9 +64,15 @@ export default function CashBookPage() {
                         category: 'Sales',
                     }));
 
-                // Load expenses from localStorage
-                const savedExpenses = localStorage.getItem('cashBookExpenses');
-                const expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
+                // Map expenses from database
+                const expenses = expensesData.success ? expensesData.data.map((expense: any) => ({
+                    id: `expense-${expense.id}`,
+                    date: expense.date,
+                    description: expense.description,
+                    type: 'out' as const,
+                    amount: parseFloat(expense.amount),
+                    category: expense.category,
+                })) : [];
 
                 // Combine and sort by date
                 const allTransactions = [...cashSales, ...expenses].sort(
@@ -95,35 +105,45 @@ export default function CashBookPage() {
         }
     };
 
-    const handleAddExpense = () => {
+    const handleAddExpense = async () => {
         if (!expenseDescription || !expenseAmount) {
             alert('Please fill in all fields');
             return;
         }
 
-        const expense: CashTransaction = {
-            id: `expense-${Date.now()}`,
-            date: new Date().toISOString(),
-            description: expenseDescription,
-            type: 'out',
-            amount: parseFloat(expenseAmount),
-            balance: 0,
-            category: 'Expense',
-        };
+        try {
+            const response = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    description: expenseDescription,
+                    amount: parseFloat(expenseAmount),
+                    category: 'Expense',
+                    date: new Date().toISOString().split('T')[0], // Format as YYYY-MM-DD
+                    payment_method: 'cash',
+                    notes: '',
+                }),
+            });
 
-        // Save to localStorage
-        const savedExpenses = localStorage.getItem('cashBookExpenses');
-        const expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
-        expenses.push(expense);
-        localStorage.setItem('cashBookExpenses', JSON.stringify(expenses));
+            const data = await response.json();
 
-        // Reset form
-        setExpenseDescription('');
-        setExpenseAmount('');
-        setShowExpenseForm(false);
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to add expense');
+            }
 
-        // Refresh transactions
-        fetchCashTransactions();
+            // Reset form
+            setExpenseDescription('');
+            setExpenseAmount('');
+            setShowExpenseForm(false);
+
+            // Refresh transactions
+            fetchCashTransactions();
+        } catch (error) {
+            console.error('Error adding expense:', error);
+            alert('Failed to add expense. Please try again.');
+        }
     };
 
     const getDateRange = () => {
