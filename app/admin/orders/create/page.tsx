@@ -56,6 +56,7 @@ export default function CreateOrderPage() {
     const [customerAddress, setCustomerAddress] = useState('');
     const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
 
     useEffect(() => {
@@ -100,6 +101,15 @@ export default function CreateOrderPage() {
             console.error('Error fetching settings:', error);
         }
         return null;
+    };
+
+    // Date formatting helper
+    const formatDate = (date: Date | string) => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
     };
 
 
@@ -151,7 +161,7 @@ export default function CreateOrderPage() {
         return location ? Number(location.delivery_charge) : 0;
     };
 
-    const grandTotal = calculateSubtotal() + calculateTax() + getDeliveryCharge();
+    const grandTotal = calculateSubtotal() + calculateTax() + getDeliveryCharge() - discount;
 
     // PRINTING LOGIC
     const printReceiptFallback = (order: any, settings: any) => {
@@ -207,7 +217,7 @@ export default function CreateOrderPage() {
                 
                 <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
                 <div>No: ${order.id}</div> 
-                <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+                <div>Date: ${formatDate(order.created_at)}</div>
                 ${order.table_number ? `<div class="bold" style="font-size: 18px;">Table No: ${order.table_number}</div>` : ''}
                 
                 <div class="divider"></div>
@@ -295,7 +305,7 @@ export default function CreateOrderPage() {
             printer.setSize(1, 1); // Normal
 
             printer.textLine(`No: ${order.id}`);
-            printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
+            printer.textLine(`Date: ${formatDate(order.created_at)}`);
             if (order.table_number) {
                 printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
@@ -381,7 +391,7 @@ export default function CreateOrderPage() {
                 items: cart,
                 subtotal: calculateSubtotal(),
                 tax: calculateTax(),
-                discount: 0,
+                discount: discount,
                 delivery_location_id: orderType === 'delivery' ? selectedLocationId : null,
                 delivery_charge: getDeliveryCharge(),
                 total_amount: grandTotal,
@@ -413,7 +423,7 @@ export default function CreateOrderPage() {
                         order_type: orderType,
                         total_amount: grandTotal,
                         tax_amount: calculateTax(),
-                        discount_amount: 0
+                        discount_amount: discount
                     };
                     await handlePrintBill(printableOrder);
                 }
@@ -543,14 +553,42 @@ export default function CreateOrderPage() {
                                 <option value="upi">UPI</option>
                             </select>
 
-                            {orderType === 'delivery' && selectedLocationId && (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', fontSize: '0.9rem' }}>
-                                    <span>Delivery Charge:</span>
-                                    <span>₹{getDeliveryCharge()}</span>
+                            {/* Subtotal and Discount */}
+                            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                    <span>Subtotal:</span>
+                                    <span>₹{calculateSubtotal().toFixed(2)}</span>
                                 </div>
-                            )}
+                                {calculateTax() > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                        <span>Tax:</span>
+                                        <span>₹{calculateTax().toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {orderType === 'delivery' && selectedLocationId && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                        <span>Delivery Charge:</span>
+                                        <span>₹{getDeliveryCharge()}</span>
+                                    </div>
+                                )}
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                                {/* Discount Input */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Discount:</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        placeholder="0"
+                                        value={discount || ''}
+                                        onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                                        style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', paddingTop: '0.5rem', borderTop: '2px solid var(--border-color)' }}>
                                 <span>Total:</span>
                                 <span>₹{grandTotal.toFixed(2)}</span>
                             </div>

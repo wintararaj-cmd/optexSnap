@@ -40,6 +40,7 @@ export default function QuickBillPage() {
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cash');
+    const [discount, setDiscount] = useState(0);
 
     // Receipt Data for Printing
     const [receiptData, setReceiptData] = useState<any>(null);
@@ -126,7 +127,16 @@ export default function QuickBillPage() {
         }, 0);
     };
 
-    const grandTotal = calculateTotal() + calculateTax();
+    // Date formatting helper
+    const formatDate = (date: Date | string) => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    const grandTotal = calculateTotal() + calculateTax() - discount;
 
     // PRINTING LOGIC
     const printReceiptFallback = (order: any, settings: any) => {
@@ -182,7 +192,7 @@ export default function QuickBillPage() {
                 
                 <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
                 <div>No: ${order.id}</div> 
-                <div>Date: ${new Date().toLocaleString()}</div>
+                <div>Date: ${formatDate(new Date())}</div>
                 
                 <div class="divider"></div>
                 
@@ -267,7 +277,7 @@ export default function QuickBillPage() {
             printer.setSize(1, 1); // Normal
 
             printer.textLine(`No: ${order.id}`);
-            printer.textLine(`Date: ${new Date().toLocaleString()}`);
+            printer.textLine(`Date: ${formatDate(new Date())}`);
             printer.line('-');
 
             // Customer
@@ -345,7 +355,7 @@ export default function QuickBillPage() {
                 order_type: 'takeaway', // Default for Quick Bill
                 order_status: 'delivered', // Immediate complete
                 payment_status: 'paid',   // Immediate paid
-                discount: 0,
+                discount: discount,
                 delivery_charge: 0
             };
 
@@ -371,7 +381,7 @@ export default function QuickBillPage() {
                         total_amount: grandTotal,
                         subtotal: calculateTotal(),
                         tax_amount: calculateTax(),
-                        discount_amount: 0
+                        discount_amount: discount
                     };
                     await handlePrintBill(printableOrder);
                 } else if (action === 'whatsapp') {
@@ -524,7 +534,36 @@ export default function QuickBillPage() {
                                     <option value="card">Card</option>
                                 </select>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+                                {/* Subtotal and Discount */}
+                                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                        <span>Subtotal:</span>
+                                        <span>₹{calculateTotal().toFixed(2)}</span>
+                                    </div>
+                                    {calculateTax() > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                            <span>Tax:</span>
+                                            <span>₹{calculateTax().toFixed(2)}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Discount Input */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
+                                        <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Discount:</label>
+                                        <input
+                                            type="number"
+                                            className="input"
+                                            placeholder="0"
+                                            value={discount || ''}
+                                            onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                                            style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', paddingTop: '0.5rem', borderTop: '2px solid var(--border-color)' }}>
                                     <span>Total Pay:</span>
                                     <span>₹{grandTotal.toFixed(2)}</span>
                                 </div>
