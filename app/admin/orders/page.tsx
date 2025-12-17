@@ -212,16 +212,15 @@ export default function AdminOrdersPage() {
             </head>
             <body>
                 <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
-                <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
-                <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
-                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
-                
+                <div class="text-center" style="font-size: 16px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 16px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 16px;">GST: ${settings.gstNumber}</div>` : ''}
                 <div class="divider"></div>
                 
                 <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
-                <div>No: ${order.order_number || order.id}</div> 
+                <div>Order #: ${order.order_number || order.id}</div>
                 <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
-                ${order.table_number ? `<div class="bold" style="font-size: 18px;">Table No: ${order.table_number}</div>` : ''}
+                ${order.table_number ? `<div class="bold" style="font-size: 22px;">Table No: ${order.table_number}</div>` : ''}
                 
                 <div class="divider"></div>
                 
@@ -232,27 +231,23 @@ export default function AdminOrdersPage() {
                 
                 <div class="divider"></div>
                 
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="text-align: left;">ITEM</th>
-                            <th style="text-align: center;">QTY</th>
-                            <th style="text-align: right;">AMT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
-                </table>
+                <div style="font-size: 18px;">ITEM${' '.repeat(35)}QTY</div>
+                ${(Array.isArray(order.items) ? order.items : []).map((item: any) => {
+            const itemName = item.menuItem.name.toUpperCase();
+            const qty = item.quantity;
+            const price = (Number(item.menuItem.price) * qty).toFixed(2);
+            return `<div style="font-size: 20px; font-weight: bold;">${itemName}${' '.repeat(Math.max(1, 40 - itemName.length))}${qty}</div>`;
+        }).join('')}
+                
                 <div class="divider"></div>
                 
-                <div class="text-right">Subtotal: ${Number(order.subtotal || order.total_amount).toFixed(2)}</div>
-                ${Number(order.tax || 0) > 0 ? `<div class="text-right">Tax: ${Number(order.tax).toFixed(2)}</div>` : ''}
-                ${Number(order.discount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount).toFixed(2)}</div>` : ''}
+                <div class="text-right" style="font-size: 20px;">Subtotal: ${Number(order.subtotal || order.total_amount).toFixed(2)}</div>
+                ${Number(order.tax || 0) > 0 ? `<div class="text-right" style="font-size: 20px;">Tax: ${Number(order.tax).toFixed(2)}</div>` : ''}
+                ${Number(order.discount || 0) > 0 ? `<div class="text-right" style="font-size: 20px;">Discount: -${Number(order.discount).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
                 <div class="divider"></div>
-                <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
+                <div class="text-center">${settings?.footerText || 'Thank you for visiting'}</div>
                 <br />
             </body>
             </html>
