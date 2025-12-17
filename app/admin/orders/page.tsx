@@ -243,7 +243,7 @@ export default function AdminOrdersPage() {
                 
                 <div class="text-right" style="font-size: 20px;">Subtotal: ${Number(order.subtotal || order.total_amount).toFixed(2)}</div>
                 ${Number(order.tax || 0) > 0 ? `<div class="text-right" style="font-size: 20px;">Tax: ${Number(order.tax).toFixed(2)}</div>` : ''}
-                ${Number(order.discount || 0) > 0 ? `<div class="text-right" style="font-size: 20px;">Discount: -${Number(order.discount).toFixed(2)}</div>` : ''}
+                ${(Number(order.discount || 0) > 0 || Number(order.discount_amount || 0) > 0) ? `<div class="text-right" style="font-size: 20px;">Discount: -${Number(order.discount || order.discount_amount || 0).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
                 <div class="divider"></div>
@@ -341,7 +341,7 @@ export default function AdminOrdersPage() {
             printer.alignRight();
             printer.textLine(`Subtotal: ${Number(order.subtotal || order.total_amount).toFixed(2)}`);
             if (Number(order.tax || 0) > 0) printer.textLine(`Tax: ${Number(order.tax).toFixed(2)}`);
-            if (Number(order.discount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount).toFixed(2)}`);
+            if (Number(order.discount || 0) > 0 || Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount || order.discount_amount || 0).toFixed(2)}`);
 
             printer.setSize(2, 3); // Extra large Total
             printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
