@@ -287,7 +287,7 @@ export default function SalesmanDashboard() {
                             <div key={order.id} className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                     <div>
-                                        <h3 style={{ margin: 0 }}>Order #{order.id}</h3>
+                                        <h3 style={{ margin: 0 }}>Order #{order.order_number || order.id}</h3>
                                         <p className="text-muted" style={{ fontSize: '0.9rem' }}>{new Date(order.created_at).toLocaleString()}</p>
                                     </div>
                                     <span className="badge" style={{ background: 'var(--info)', color: 'white' }}>Pending</span>
@@ -370,7 +370,7 @@ export default function SalesmanDashboard() {
 
                     {editingOrderId && (
                         <div style={{ background: 'var(--info-light)', color: 'var(--info)', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Editing Order #{editingOrderId}</span>
+                            <span>Editing Order #{pendingOrders.find(o => o.id === editingOrderId)?.order_number || editingOrderId}</span>
                             <button className="btn btn-ghost btn-sm" onClick={resetForm}>Cancel Edit</button>
                         </div>
                     )}
