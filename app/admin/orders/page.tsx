@@ -189,26 +189,26 @@ export default function AdminOrdersPage() {
             <html>
             <head>
                 <title>Receipt #${order.order_number || order.id}</title>
-                <style>
-                    @page { margin: 0; size: 80mm auto; }
-                    body {
-                        font-family: 'Courier New', Courier, monospace;
-                        width: 72mm;
-                        margin: 0 auto;
-                        padding: 10px;
-                        font-size: 16px; 
-                        font-weight: bold;
-                        color: black;
-                    }
-                    .text-center { text-align: center; }
-                    .text-right { text-align: right; }
-                    .bold { font-weight: 900; }
-                    .header-large { font-size: 24px; font-weight: 900; }
-                    .header-medium { font-size: 18px; font-weight: 900; }
-                    .divider { border-top: 2px dashed black; margin: 8px 0; }
-                    table { width: 100%; border-collapse: collapse; font-size: 16px; }
-                    th { border-bottom: 2px dashed black; padding-bottom: 4px; }
-                </style>
+            <style>
+                @page { margin: 0; size: 80mm auto; }
+                body {
+                    font-family: 'Courier New', Courier, monospace;
+                    width: 78mm;
+                    margin: 0 auto;
+                    padding: 2mm;
+                    font-size: 18px; 
+                    font-weight: bold;
+                    color: black;
+                }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .bold { font-weight: 900; }
+                .header-large { font-size: 28px; font-weight: 900; }
+                .header-medium { font-size: 22px; font-weight: 900; }
+                .divider { border-top: 2px dashed black; margin: 6px 0; }
+                table { width: 100%; border-collapse: collapse; font-size: 18px; }
+                th { border-bottom: 2px dashed black; padding-bottom: 4px; }
+            </style>
             </head>
             <body>
                 <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
