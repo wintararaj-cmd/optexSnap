@@ -160,10 +160,16 @@ export async function POST(request: Request) {
             success: true,
             data: { ...order, invoice_number: invoiceNumber },
         });
-    } catch (error) {
-        console.error('Error creating order:', error);
+    } catch (error: any) {
+        console.error('❌ Error creating order:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         return NextResponse.json(
-            { success: false, error: 'Failed to create order' },
+            {
+                success: false,
+                error: 'Failed to create order',
+                details: error.message // Include error details in development
+            },
             { status: 500 }
         );
     }

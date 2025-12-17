@@ -218,6 +218,7 @@ export default function QuickBillPage() {
                 
                 <div class="text-right">Subtotal: ${Number(order.subtotal).toFixed(2)}</div>
                 ${(settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
                 <div class="divider"></div>
@@ -309,6 +310,7 @@ export default function QuickBillPage() {
             printer.alignRight();
             printer.textLine(`Subtotal: ${Number(order.subtotal).toFixed(2)}`);
             if (settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
 
             printer.setSize(2, 2); // Large Total
             printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
