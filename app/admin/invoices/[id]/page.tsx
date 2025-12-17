@@ -127,8 +127,8 @@ export default function InvoicePage() {
                         width: 72mm;
                         margin: 0 auto;
                         padding: 10px;
-                        font-size: 14px;
-                        font-weight: bold;
+                        font-size: 16px;
+                        font-weight: 900;
                         color: black;
                     }
                     .text-center { text-align: center; }
@@ -139,10 +139,10 @@ export default function InvoicePage() {
                 </style>
             </head>
             <body>
-                <div class="text-center bold" style="font-size: 16px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
-                <div class="text-center" style="font-size: 12px;">${settings?.restaurantAddress || ''}</div>
-                <div class="text-center" style="font-size: 12px;">Ph: ${settings?.restaurantPhone || ''}</div>
-                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 12px;">GST: ${settings.gstNumber}</div>` : ''}
+                <div class="text-center bold" style="font-size: 20px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
+                <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
+                ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
                 
                 <div class="divider"></div>
                 
@@ -177,7 +177,7 @@ export default function InvoicePage() {
                 <div class="text-right">Subtotal: ${Number(invoice.subtotal).toFixed(2)}</div>
                 ${(settings?.gstType === 'regular' && Number(invoice.tax) > 0) ? `<div class="text-right">Tax: ${Number(invoice.tax).toFixed(2)}</div>` : ''}
                 ${Number(invoice.discount) > 0 ? `<div class="text-right">Discount: -${Number(invoice.discount).toFixed(2)}</div>` : ''}
-                <div class="text-right bold" style="font-size: 16px; margin-top: 5px;">TOTAL: ${Number(invoice.total).toFixed(2)}</div>
+                <div class="text-right bold" style="font-size: 20px; margin-top: 5px;">TOTAL: ${Number(invoice.total).toFixed(2)}</div>
                 
                 <div class="divider"></div>
                 <div class="text-center">${settings?.footerText || 'Thank You!'}</div>
@@ -401,7 +401,9 @@ export default function InvoicePage() {
                 const qty = item.quantity.toString().padStart(3, ' ');
                 const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
                 printer.setSize(1, 2); // Taller font for items
+                printer.bold(true);    // Bold on
                 printer.textLine(`${name} ${qty} ${total}`);
+                printer.bold(false);   // Bold off
             });
             printer.setSize(1, 1); // Reset
             printer.line('-');
@@ -567,8 +569,8 @@ export default function InvoicePage() {
                         .thermal-receipt {
                             width: ${settings?.paperWidth === '58mm' ? '58mm' : '80mm'} !important;
                             font-family: 'Courier New', Courier, monospace !important; 
-                            font-size: 14px !important; /* Slightly larger for better clarity */
-                            font-weight: 700 !important; /* Force bold */
+                            font-size: 16px !important; /* Larger for better clarity */
+                            font-weight: 900 !important; /* Extra bold */
                             line-height: 1.2 !important;
                             padding: 2mm !important;
                             margin: 0 auto !important;
@@ -584,22 +586,22 @@ export default function InvoicePage() {
 
                         /* Header styling for thermal */
                         .thermal-receipt h1 {
-                            font-size: 18px !important;
+                            font-size: 22px !important;
                             font-weight: 900 !important; /* Extra bold */
                             margin: 0 0 5px 0 !important;
                             text-transform: uppercase;
                         }
                         
                         .thermal-receipt h2, .thermal-receipt h3 {
-                            font-size: 15px !important;
-                            font-weight: bold !important;
+                            font-size: 18px !important;
+                            font-weight: 900 !important;
                             margin: 5px 0 !important;
                         }
 
                         /* Table styling */
                         .thermal-receipt table {
                             width: 100% !important;
-                            font-size: 14px !important;
+                            font-size: 18px !important;
                             border-collapse: collapse !important;
                         }
                         
@@ -608,11 +610,13 @@ export default function InvoicePage() {
                             border-bottom: 2px dashed black !important;
                             padding: 2px 0 !important;
                             font-weight: 900 !important;
+                            font-size: 18px !important;
                         }
                         
                         .thermal-receipt td {
                             padding: 2px 0 !important;
-                            font-weight: 700 !important;
+                            font-weight: 900 !important;
+                            font-size: 18px !important;
                         }
 
 

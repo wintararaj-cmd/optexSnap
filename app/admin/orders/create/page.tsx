@@ -321,7 +321,9 @@ export default function CreateOrderPage() {
                     const qty = item.quantity.toString().padStart(3, ' ');
                     const total = (Number(item.menuItem.price) * item.quantity).toFixed(2).padStart(10, ' ');
                     printer.setSize(1, 2); // Taller font for items
+                    printer.bold(true);    // Bold on
                     printer.textLine(`${name} ${qty} ${total}`);
+                    printer.bold(false);   // Bold off
                 });
             }
             printer.setSize(1, 1);
