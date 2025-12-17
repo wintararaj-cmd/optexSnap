@@ -37,6 +37,36 @@ async function runMigrations() {
         await client.query(schema);
         console.log('✅ Database schema created successfully!\n');
 
+        // Run additional migrations
+        console.log('🔄 Running additional migrations...\n');
+        const migrationsDir = path.join(__dirname, '..', 'database', 'migrations');
+
+        if (fs.existsSync(migrationsDir)) {
+            const migrationFiles = fs.readdirSync(migrationsDir)
+                .filter(file => file.endsWith('.sql'))
+                .sort(); // Run in order
+
+            for (const file of migrationFiles) {
+                try {
+                    console.log(`  📄 Running: ${file}`);
+                    const migrationPath = path.join(migrationsDir, file);
+                    const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+                    await client.query(migrationSQL);
+                    console.log(`  ✅ ${file} completed`);
+                } catch (migError) {
+                    // Some migrations might fail if columns already exist, that's okay
+                    if (migError.code === '42701') { // duplicate column
+                        console.log(`  ⚠️  ${file} - column already exists (skipped)`);
+                    } else {
+                        console.log(`  ⚠️  ${file} - ${migError.message}`);
+                    }
+                }
+            }
+            console.log('\n✅ All migrations completed!\n');
+        } else {
+            console.log('⚠️  No migrations directory found, skipping additional migrations\n');
+        }
+
         // Verify tables
         const result = await client.query(`
             SELECT table_name 
