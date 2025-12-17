@@ -196,17 +196,17 @@ export default function AdminOrdersPage() {
                     width: 78mm;
                     margin: 0 auto;
                     padding: 2mm;
-                    font-size: 18px; 
+                    font-size: 20px; 
                     font-weight: bold;
                     color: black;
                 }
                 .text-center { text-align: center; }
                 .text-right { text-align: right; }
                 .bold { font-weight: 900; }
-                .header-large { font-size: 28px; font-weight: 900; }
-                .header-medium { font-size: 22px; font-weight: 900; }
+                .header-large { font-size: 32px; font-weight: 900; }
+                .header-medium { font-size: 24px; font-weight: 900; }
                 .divider { border-top: 2px dashed black; margin: 6px 0; }
-                table { width: 100%; border-collapse: collapse; font-size: 18px; }
+                table { width: 100%; border-collapse: collapse; font-size: 20px; }
                 th { border-bottom: 2px dashed black; padding-bottom: 4px; }
             </style>
             </head>
@@ -294,7 +294,7 @@ export default function AdminOrdersPage() {
             printer.setSize(2, 2); // Double Width, Double Height
             printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
             printer.bold(false);
-            printer.setSize(1, 1); // Normal
+            printer.setSize(1, 2); // Taller for better readability
 
             printer.textLine(settings?.restaurantAddress || '');
             printer.textLine(`Ph: ${settings?.restaurantPhone || ''}`);
@@ -302,17 +302,17 @@ export default function AdminOrdersPage() {
             printer.feed(1);
 
             // Title and Meta
-            printer.setSize(1, 2); // Double Height
+            printer.setSize(2, 2); // Larger title
             printer.bold(true).textLine(settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY');
             printer.bold(false);
-            printer.setSize(1, 1); // Normal
+            printer.setSize(1, 2); // Taller
 
             printer.textLine(`No: ${order.order_number || order.id}`);
             printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
             if (order.table_number) {
                 printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
-                printer.setSize(1, 1);
+                printer.setSize(1, 2);
             }
             printer.line('-');
 
@@ -339,7 +339,7 @@ export default function AdminOrdersPage() {
                     printer.bold(false);   // Bold off
                 });
             }
-            printer.setSize(1, 1);
+            printer.setSize(1, 2);
             printer.line('-');
 
             // Totals
@@ -348,9 +348,9 @@ export default function AdminOrdersPage() {
             if (Number(order.tax || 0) > 0) printer.textLine(`Tax: ${Number(order.tax).toFixed(2)}`);
             if (Number(order.discount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount).toFixed(2)}`);
 
-            printer.setSize(2, 2); // Large Total
+            printer.setSize(2, 3); // Extra large Total
             printer.bold(true).textLine(`TOTAL: ${Number(order.total_amount).toFixed(2)}`).bold(false);
-            printer.setSize(1, 1);
+            printer.setSize(1, 2);
             printer.feed(1);
 
             // Footer
