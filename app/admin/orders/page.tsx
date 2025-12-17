@@ -13,6 +13,7 @@ export default function AdminOrdersPage() {
     const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
 
     const [deliveryBoys, setDeliveryBoys] = useState<any[]>([]);
+    const [editingDiscount, setEditingDiscount] = useState<{ [key: number]: string }>({});
 
     const [settings, setSettings] = useState<any>(null);
 
@@ -601,10 +602,25 @@ export default function AdminOrdersPage() {
                                     </label>
                                     <input
                                         type="number"
-                                        value={order.discount || 0}
+                                        value={editingDiscount[order.id] !== undefined ? editingDiscount[order.id] : (order.discount || 0)}
                                         onChange={(e) => {
+                                            setEditingDiscount({
+                                                ...editingDiscount,
+                                                [order.id]: e.target.value
+                                            });
+                                        }}
+                                        onBlur={(e) => {
                                             const newDiscount = Math.max(0, parseFloat(e.target.value) || 0);
                                             updateDiscount(order.id, newDiscount);
+                                            // Clear editing state after save
+                                            const newEditing = { ...editingDiscount };
+                                            delete newEditing[order.id];
+                                            setEditingDiscount(newEditing);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.currentTarget.blur(); // Trigger onBlur
+                                            }
                                         }}
                                         className="input"
                                         min="0"
@@ -614,7 +630,7 @@ export default function AdminOrdersPage() {
                                     />
                                     {order.discount > 0 && (
                                         <div style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.25rem' }}>
-                                            New Total: ₹{(parseFloat(order.total_amount) + parseFloat(order.discount || 0) - parseFloat(order.discount || 0)).toFixed(2)}
+                                            Discount Applied: ₹{parseFloat(order.discount).toFixed(2)}
                                         </div>
                                     )}
                                 </div>
