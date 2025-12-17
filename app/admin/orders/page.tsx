@@ -132,6 +132,40 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const updateDiscount = async (orderId: number, discount: number) => {
+        try {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            // Recalculate total with new discount
+            const subtotal = parseFloat(order.subtotal || 0);
+            const tax = parseFloat(order.tax || 0);
+            const deliveryCharge = parseFloat(order.delivery_charge || 0);
+            const newTotal = subtotal + tax + deliveryCharge - discount;
+
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    discount: discount,
+                    total_amount: newTotal
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                fetchOrders();
+                alert('Discount Updated Successfully');
+            } else {
+                alert(`Failed to update discount: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating discount:', error);
+            alert('An error occurred while updating discount.');
+        }
+    };
+
     const printReceiptFallback = (order: any, settings: any) => {
         const printWindow = window.open('', '_blank', 'width=400,height=600');
         if (!printWindow) {
@@ -557,6 +591,30 @@ export default function AdminOrdersPage() {
                                     ) : (
                                         <div className="input" style={{ background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-color)' }}>
                                             N/A ({order.order_type === 'takeaway' ? 'Takeaway' : 'Dine-in'})
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        Discount (₹)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={order.discount || 0}
+                                        onChange={(e) => {
+                                            const newDiscount = Math.max(0, parseFloat(e.target.value) || 0);
+                                            updateDiscount(order.id, newDiscount);
+                                        }}
+                                        className="input"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="0.00"
+                                        style={{ textAlign: 'right' }}
+                                    />
+                                    {order.discount > 0 && (
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.25rem' }}>
+                                            New Total: ₹{(parseFloat(order.total_amount) + parseFloat(order.discount || 0) - parseFloat(order.discount || 0)).toFixed(2)}
                                         </div>
                                     )}
                                 </div>
