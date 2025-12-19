@@ -58,6 +58,23 @@ export default function AdminDashboard() {
         router.push('/admin');
     };
 
+    const handleRunMigration = async () => {
+        if (!confirm('Run database migration to fix expenses table?')) return;
+
+        try {
+            const response = await fetch('/api/admin/run-migration', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Migration completed successfully!\n\nColumns: ' + data.columns.join(', '));
+            } else {
+                alert('Migration failed: ' + (data.details || data.error));
+            }
+        } catch (error: any) {
+            alert('Error running migration: ' + error.message);
+        }
+    };
+
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
@@ -72,9 +89,14 @@ export default function AdminDashboard() {
             <div style={{ position: 'relative', zIndex: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <h1>Admin Dashboard</h1>
-                    <button onClick={handleLogout} className="btn btn-ghost" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
-                        Logout
-                    </button>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={handleRunMigration} className="btn btn-warning" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
+                            🔧 Fix Database
+                        </button>
+                        <button onClick={handleLogout} className="btn btn-ghost" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
+                            Logout
+                        </button>
+                    </div>
                 </div>
 
                 {/* Quick Links */}
