@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         }
 
         const result = await query(
-            `INSERT INTO expenses (description, amount, category, date, payment_method, notes, receipt_image_id)
+            `INSERT INTO expenses (description, amount, category, expense_date, payment_method, notes, receipt_image_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
             [description, amount, category, date, payment_method, notes, image_id || null]

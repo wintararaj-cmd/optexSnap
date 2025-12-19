@@ -3,7 +3,7 @@
 DO $$
 BEGIN
     BEGIN
-        ALTER TABLE expenses ADD COLUMN date DATE NOT NULL DEFAULT CURRENT_DATE;
+        ALTER TABLE expenses ADD COLUMN expense_date DATE NOT NULL DEFAULT CURRENT_DATE;
     EXCEPTION
         WHEN duplicate_column THEN NULL;
     END;
