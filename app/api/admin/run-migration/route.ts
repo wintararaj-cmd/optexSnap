@@ -1,70 +1,54 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-// This is a one-time migration endpoint
-// Visit: /api/admin/run-migration to execute
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     try {
-        console.log('🔄 Starting customer details optional migration...');
+        // Run the migration to add missing columns
+        const migrationSQL = `
+            DO $$
+            BEGIN
+                BEGIN
+                    ALTER TABLE expenses ADD COLUMN date DATE NOT NULL DEFAULT CURRENT_DATE;
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
 
-        // Step 1: Make customer_name nullable
-        await query('ALTER TABLE orders ALTER COLUMN customer_name DROP NOT NULL');
-        console.log('✅ customer_name is now nullable');
+                BEGIN
+                    ALTER TABLE expenses ADD COLUMN receipt_image_id INTEGER REFERENCES images(id) ON DELETE SET NULL;
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
 
-        // Step 2: Make customer_phone nullable
-        await query('ALTER TABLE orders ALTER COLUMN customer_phone DROP NOT NULL');
-        console.log('✅ customer_phone is now nullable');
+                BEGIN
+                    ALTER TABLE expenses ADD COLUMN notes TEXT;
+                EXCEPTION
+                    WHEN duplicate_column THEN NULL;
+                END;
+            END $$;
+        `;
 
-        // Step 3: Update existing NULL values
-        const result1 = await query(
-            "UPDATE orders SET customer_name = 'Walk-in Customer' WHERE customer_name IS NULL OR customer_name = ''"
-        );
-        console.log(`✅ Updated ${result1.rowCount} rows for customer_name`);
+        await query(migrationSQL);
 
-        const result2 = await query(
-            "UPDATE orders SET customer_phone = 'N/A' WHERE customer_phone IS NULL OR customer_phone = ''"
-        );
-        console.log(`✅ Updated ${result2.rowCount} rows for customer_phone`);
-
-        // Verify the changes
-        const verify = await query(`
-            SELECT column_name, is_nullable 
+        // Verify the columns exist
+        const result = await query(`
+            SELECT column_name 
             FROM information_schema.columns 
-            WHERE table_name = 'orders' 
-            AND column_name IN ('customer_name', 'customer_phone')
+            WHERE table_name = 'expenses'
+            ORDER BY column_name;
         `);
-
-        console.log('🎉 Migration completed successfully!');
 
         return NextResponse.json({
             success: true,
-            message: 'Migration completed successfully!',
-            changes: {
-                customer_name_nullable: true,
-                customer_phone_nullable: true,
-                rows_updated_name: result1.rowCount,
-                rows_updated_phone: result2.rowCount,
-            },
-            verification: verify.rows,
+            message: 'Migration completed successfully',
+            columns: result.rows.map(r => r.column_name)
         });
-
     } catch (error: any) {
-        console.error('❌ Migration failed:', error);
-
-        // Check if columns are already nullable
-        if (error.message?.includes('does not exist') || error.message?.includes('already')) {
-            return NextResponse.json({
-                success: true,
-                message: 'Migration already applied or columns already nullable',
-                error: error.message,
-            });
-        }
-
+        console.error('Migration error:', error);
         return NextResponse.json(
             {
                 success: false,
                 error: 'Migration failed',
-                details: error.message,
+                details: error.message
             },
             { status: 500 }
         );
