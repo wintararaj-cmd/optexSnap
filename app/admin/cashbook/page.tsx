@@ -141,9 +141,9 @@ export default function CashBookPage() {
 
             // Refresh transactions
             fetchCashTransactions();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error adding expense:', error);
-            alert('Failed to add expense. Please try again.');
+            alert(`Failed to add expense: ${error.message || 'Unknown error'}`);
         }
     };
 
