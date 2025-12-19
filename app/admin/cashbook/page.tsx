@@ -131,7 +131,7 @@ export default function CashBookPage() {
             const data = await response.json();
 
             if (!data.success) {
-                throw new Error(data.error || 'Failed to add expense');
+                throw new Error(data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to add expense'));
             }
 
             // Reset form

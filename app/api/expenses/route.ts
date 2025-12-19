@@ -77,10 +77,14 @@ export async function POST(request: Request) {
             success: true,
             data: result.rows[0],
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating expense:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to create expense' },
+            {
+                success: false,
+                error: 'Failed to create expense',
+                details: error.message
+            },
             { status: 500 }
         );
     }
