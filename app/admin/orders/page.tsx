@@ -180,7 +180,7 @@ export default function AdminOrdersPage() {
             const total = (Number(item.menuItem.price) * item.quantity).toFixed(2);
             return `
             <tr>
-                <td style="padding: 4px 0;">${item.menuItem.name}</td>
+                <td style="padding: 4px 0;">${item.menuItem.name.toUpperCase()}</td>
                 <td style="text-align: center; padding: 4px 0;">${item.quantity}</td>
                 <td style="text-align: right; padding: 4px 0;">${total}</td>
             </tr>`;
@@ -233,13 +233,18 @@ export default function AdminOrdersPage() {
                 
                 <div class="divider"></div>
                 
-                <div style="font-size: 18px;">ITEM${' '.repeat(35)}QTY</div>
-                ${(Array.isArray(order.items) ? order.items : []).map((item: any) => {
-            const itemName = item.menuItem.name.toUpperCase();
-            const qty = item.quantity;
-            const price = (Number(item.menuItem.price) * qty).toFixed(2);
-            return `<div style="font-size: 20px; font-weight: bold;">${itemName}${' '.repeat(Math.max(1, 40 - itemName.length))}${qty}</div>`;
-        }).join('')}
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">ITEM</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
                 
                 <div class="divider"></div>
                 
