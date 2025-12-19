@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ReceiptPrinter } from '@/lib/receipt-printer';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 export default function AdminOrdersPage() {
     const router = useRouter();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
+    const [dateFilter, setDateFilter] = useState('today');
     const [printingOrderId, setPrintingOrderId] = useState<number | null>(null);
 
     const [deliveryBoys, setDeliveryBoys] = useState<any[]>([]);
@@ -219,7 +221,7 @@ export default function AdminOrdersPage() {
                 
                 <div class="text-center bold header-medium">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
                 <div>Order #: ${order.order_number || order.id}</div>
-                <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+                <div>Date: ${formatDateTime(order.created_at)}</div>
                 ${order.table_number ? `<div class="bold" style="font-size: 22px;">Table No: ${order.table_number}</div>` : ''}
                 
                 <div class="divider"></div>
@@ -303,7 +305,7 @@ export default function AdminOrdersPage() {
             printer.setSize(1, 2); // Taller
 
             printer.textLine(`No: ${order.order_number || order.id}`);
-            printer.textLine(`Date: ${new Date(order.created_at).toLocaleString()}`);
+            printer.textLine(`Date: ${formatDateTime(order.created_at)}`);
             if (order.table_number) {
                 printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${order.table_number}`).bold(false);
@@ -368,9 +370,18 @@ export default function AdminOrdersPage() {
         }
     };
 
-    const filteredOrders = filter === 'all'
-        ? orders
-        : orders.filter(o => o.order_status === filter);
+    const filteredOrders = orders.filter(o => {
+        const matchesStatus = filter === 'all' || o.order_status === filter;
+
+        let matchesDate = true;
+        if (dateFilter === 'today') {
+            const today = new Date().toDateString();
+            const orderDate = new Date(o.created_at).toDateString();
+            matchesDate = orderDate === today;
+        }
+
+        return matchesStatus && matchesDate;
+    });
 
     if (loading) {
         return (
@@ -397,6 +408,26 @@ export default function AdminOrdersPage() {
 
                 {/* Filters */}
                 <div style={{ marginBottom: '2rem' }}>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <strong>Date Range:</strong>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                        <button
+                            onClick={() => setDateFilter('today')}
+                            className={dateFilter === 'today' ? 'btn btn-primary' : 'btn btn-ghost'}
+                            style={{ padding: '0.625rem 1.25rem' }}
+                        >
+                            Today
+                        </button>
+                        <button
+                            onClick={() => setDateFilter('all')}
+                            className={dateFilter === 'all' ? 'btn btn-primary' : 'btn btn-ghost'}
+                            style={{ padding: '0.625rem 1.25rem' }}
+                        >
+                            All Time
+                        </button>
+                    </div>
+
                     <div style={{ marginBottom: '1rem' }}>
                         <strong>Order Status:</strong>
                     </div>
@@ -432,7 +463,7 @@ export default function AdminOrdersPage() {
                                         </span>
                                     </div>
                                     <p className="text-muted" style={{ fontSize: '0.9375rem', marginBottom: '0.5rem' }}>
-                                        {new Date(order.created_at).toLocaleString()}
+                                        {formatDateTime(order.created_at)}
                                     </p>
                                     <p style={{ marginBottom: 0 }}>
                                         <strong>{order.customer_name}</strong> • {order.customer_phone}

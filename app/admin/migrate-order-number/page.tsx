@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/utils';
 
 export default function MigrateOrderNumberPage() {
     const router = useRouter();
@@ -123,7 +124,7 @@ export default function MigrateOrderNumberPage() {
                                                         </td>
                                                         <td style={{ padding: '0.5rem' }}>{order.customer_name}</td>
                                                         <td style={{ padding: '0.5rem' }}>
-                                                            {new Date(order.created_at).toLocaleDateString()}
+                                                            {formatDate(order.created_at)}
                                                         </td>
                                                     </tr>
                                                 ))}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 interface GSTReportData {
     gst_rate: number;
@@ -168,7 +169,7 @@ export default function GSTReportPage() {
         const csvLines = [
             // Report Header
             'GST REPORT - RUCHI RESTAURANT',
-            `Generated: ${new Date().toLocaleString()}`,
+            `Generated: ${formatDateTime(new Date())}`,
             `Period: ${dateRange}`,
             '',
 
@@ -206,7 +207,7 @@ export default function GSTReportPage() {
         // Add order data
         orders.forEach(order => {
             csvLines.push(
-                `${order.invoice_number},${order.customer_name},${new Date(order.order_date).toLocaleDateString()},${order.subtotal.toFixed(2)},${order.tax.toFixed(2)},${order.total.toFixed(2)},${order.payment_status}`
+                `${order.invoice_number},${order.customer_name},${formatDate(order.order_date)},${order.subtotal.toFixed(2)},${order.tax.toFixed(2)},${order.total.toFixed(2)},${order.payment_status}`
             );
         });
 
@@ -406,7 +407,7 @@ export default function GSTReportPage() {
                                             <td style={{ padding: '1rem', fontWeight: 500 }}>{order.invoice_number}</td>
                                             <td style={{ padding: '1rem' }}>{order.customer_name}</td>
                                             <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                                                {new Date(order.order_date).toLocaleDateString()}
+                                                {formatDate(order.order_date)}
                                             </td>
                                             <td style={{ padding: '1rem', textAlign: 'right' }}>₹{order.subtotal.toFixed(2)}</td>
                                             <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--success)' }}>

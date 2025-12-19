@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { ReceiptPrinter } from '@/lib/receipt-printer';
+import { formatDate } from '@/lib/utils';
 
 interface MenuItem {
     id: number;
@@ -127,14 +128,7 @@ export default function QuickBillPage() {
         }, 0);
     };
 
-    // Date formatting helper
-    const formatDate = (date: Date | string) => {
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
+
 
     const grandTotal = calculateTotal() + calculateTax() - discount;
 
@@ -417,7 +411,7 @@ export default function QuickBillPage() {
 
         const message = `*Ruchi Restaurant - Bill Receipt*%0A` +
             `Invoice: ${order.invoice_number}%0A` +
-            `Date: ${new Date().toLocaleDateString()}%0A%0A` +
+            `Date: ${formatDate(new Date())}%0A%0A` +
             `*Items:*%0A${itemsList}%0A` +
             `------------------------%0A` +
             `*Total Amount: ₹${grandTotal.toFixed(2)}*%0A` +

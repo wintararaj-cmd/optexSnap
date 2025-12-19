@@ -20,11 +20,14 @@ interface InvoiceData {
     payment_status: string;
     order_type: string;
     order_date: string;
+
     table_number?: string;
+    order_number?: string;
 }
 
 
 import { ReceiptPrinter } from '@/lib/receipt-printer';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 export default function InvoicePage() {
     const router = useRouter();
@@ -148,7 +151,7 @@ export default function InvoicePage() {
                 
                 <div class="text-center bold">${settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}</div>
                 <div>No: ${invoice.invoice_number}</div>
-                <div>Date: ${new Date(invoice.order_date).toLocaleString()}</div>
+                <div>Date: ${formatDateTime(invoice.order_date)}</div>
                 ${invoice.table_number ? `<div class="bold">Table No: ${invoice.table_number}</div>` : ''}
                 
                 <div class="divider"></div>
@@ -241,10 +244,10 @@ export default function InvoicePage() {
                 <div class="text-center bold" style="font-size: 20px;">KITCHEN ORDER TICKET</div>
                 <div class="divider"></div>
                 
-                <div style="font-size: 18px;">Order #: ${invoice.order_id}</div>
+                <div style="font-size: 18px;">Order #: ${invoice.order_number || invoice.order_id}</div>
                 <div style="font-weight: 900; font-size: 18px;">Type: ${invoice.order_type.toUpperCase()}</div>
                 ${invoice.table_number ? `<div style="font-weight: 900; font-size: 20px;">Table No: ${invoice.table_number}</div>` : ''}
-                <div>Date: ${new Date(invoice.order_date).toLocaleString()}</div>
+                <div>Date: ${formatDateTime(invoice.order_date)}</div>
                 
                 <div class="divider"></div>
                 
@@ -298,10 +301,10 @@ export default function InvoicePage() {
             printer.feed(1);
 
             printer.alignLeft();
-            printer.textLine(`Order #: ${invoice.order_id}`);
+            printer.textLine(`Order #: ${invoice.order_number || invoice.order_id}`);
             printer.textLine(`Type: ${invoice.order_type.toUpperCase()}`);
             if (invoice.table_number) printer.textLine(`Table No: ${invoice.table_number}`);
-            printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
+            printer.textLine(`Date: ${formatDateTime(invoice.order_date)}`);
             printer.line('-');
 
             printer.textLine('ITEM                     QTY');
@@ -374,7 +377,7 @@ export default function InvoicePage() {
             printer.setSize(1, 1); // Normal
 
             printer.textLine(`No: ${invoice.invoice_number}`);
-            printer.textLine(`Date: ${new Date(invoice.order_date).toLocaleString()}`);
+            printer.textLine(`Date: ${formatDateTime(invoice.order_date)}`);
             if (invoice.table_number) {
                 printer.setSize(2, 2);
                 printer.bold(true).textLine(`Table No: ${invoice.table_number}`).bold(false);
@@ -459,7 +462,7 @@ export default function InvoicePage() {
 
         // Create formatted message
         const message = `🧾 *${invoiceTitle} - ${invoice.invoice_number}*\n\n` +
-            `📅 *Date:* ${new Date(invoice.order_date).toLocaleDateString()}\n` +
+            `📅 *Date:* ${formatDate(invoice.order_date)}\n` +
             `👤 *Customer:* ${invoice.customer_name}\n` +
             `📞 *Phone:* ${invoice.customer_phone}\n` +
             `${invoice.customer_address ? `📍 *Address:* ${invoice.customer_address}\n` : ''}` +
@@ -711,11 +714,11 @@ export default function InvoicePage() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', padding: '1rem', background: 'var(--glass-bg)', borderRadius: '8px' }}>
                                     <div>
                                         <p className="text-muted" style={{ fontSize: '0.875rem' }}>Invoice Date</p>
-                                        <p style={{ fontWeight: 500 }}>{new Date(invoice.generated_at).toLocaleDateString()}</p>
+                                        <p style={{ fontWeight: 500 }}>{formatDate(invoice.generated_at)}</p>
                                     </div>
                                     <div>
                                         <p className="text-muted" style={{ fontSize: '0.875rem' }}>Order Date</p>
-                                        <p style={{ fontWeight: 500 }}>{new Date(invoice.order_date).toLocaleDateString()}</p>
+                                        <p style={{ fontWeight: 500 }}>{formatDate(invoice.order_date)}</p>
                                     </div>
                                     <div>
                                         <p className="text-muted" style={{ fontSize: '0.875rem' }}>Payment Method</p>
@@ -741,7 +744,7 @@ export default function InvoicePage() {
                                     {invoice.customer_address && <p style={{ margin: '0.125rem 0' }}><strong>Address:</strong> {invoice.customer_address}</p>}
                                     <p style={{ margin: '0.125rem 0' }}><strong>Type:</strong> <span style={{ textTransform: 'capitalize' }}>{invoice.order_type}</span></p>
                                     {invoice.table_number && <p style={{ margin: '0.125rem 0' }}><strong>Table:</strong> {invoice.table_number}</p>}
-                                    <p style={{ margin: '0.125rem 0' }}><strong>Date:</strong> {new Date(invoice.order_date).toLocaleString()}</p>
+                                    <p style={{ margin: '0.125rem 0' }}><strong>Date:</strong> {formatDateTime(invoice.order_date)}</p>
                                     <p style={{ margin: '0.125rem 0' }}><strong>Payment:</strong> <span style={{ textTransform: 'capitalize' }}>{invoice.payment_method}</span></p>
                                     <div className="divider" style={{ borderTop: '1px dashed #000', margin: '0.5rem 0' }}></div>
                                 </div>

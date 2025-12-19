@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/utils';
 
 export default function AdminBillingPage() {
     const router = useRouter();
@@ -162,7 +163,7 @@ export default function AdminBillingPage() {
                                                 </span>
                                             </td>
                                             <td style={{ padding: '1rem' }}>
-                                                {new Date(order.created_at).toLocaleDateString()}
+                                                {formatDate(order.created_at)}
                                             </td>
                                             <td style={{ padding: '1rem' }}>
                                                 {hasInvoice ? (
@@ -212,7 +213,7 @@ export default function AdminBillingPage() {
                                             <td style={{ padding: '1rem' }}>₹{parseFloat(invoice.tax).toFixed(2)}</td>
                                             <td style={{ padding: '1rem', fontWeight: 600 }}>₹{parseFloat(invoice.total).toFixed(2)}</td>
                                             <td style={{ padding: '1rem' }}>
-                                                {new Date(invoice.generated_at).toLocaleDateString()}
+                                                {formatDate(invoice.generated_at)}
                                             </td>
                                         </tr>
                                     ))}

@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Order } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDateTime } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -113,7 +114,7 @@ function OrdersContent() {
                                     <div>
                                         <h3 style={{ marginBottom: '0.5rem' }}>Order #{order.id}</h3>
                                         <p className="text-muted" style={{ fontSize: '0.9375rem', marginBottom: 0 }}>
-                                            {new Date(order.created_at!).toLocaleString()}
+                                            {formatDateTime(order.created_at!)}
                                         </p>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>

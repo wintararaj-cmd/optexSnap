@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 interface SaleEntry {
     id: number;
@@ -182,7 +183,7 @@ export default function SaleBookPage() {
     const exportToCSV = () => {
         const headers = ['Date', 'Invoice#', 'Source', 'Customer', 'Phone', 'Type', 'Table', 'Payment Method', 'Amount', 'Status'];
         const rows = filteredSales.map(sale => [
-            new Date(sale.created_at).toLocaleString(),
+            formatDateTime(sale.created_at),
             sale.invoice_number,
             getOrderSource(sale),
             sale.customer_name,
@@ -352,9 +353,9 @@ export default function SaleBookPage() {
                                     filteredSales.map(sale => (
                                         <tr key={sale.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{ padding: '1rem' }}>
-                                                {new Date(sale.created_at).toLocaleDateString()}<br />
+                                                {formatDate(sale.created_at)}<br />
                                                 <span className="text-muted" style={{ fontSize: '0.875rem' }}>
-                                                    {new Date(sale.created_at).toLocaleTimeString()}
+                                                    {new Date(sale.created_at).toLocaleTimeString('en-IN')}
                                                 </span>
                                             </td>
                                             <td style={{ padding: '1rem', fontWeight: 500 }}>{sale.invoice_number}</td>

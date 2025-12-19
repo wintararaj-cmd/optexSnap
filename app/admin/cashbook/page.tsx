@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 interface CashTransaction {
     id: string;
@@ -196,7 +197,7 @@ export default function CashBookPage() {
     const exportToCSV = () => {
         const headers = ['Date', 'Description', 'Type', 'Cash In', 'Cash Out', 'Balance'];
         const rows = filteredTransactions.map(txn => [
-            new Date(txn.date).toLocaleString(),
+            formatDateTime(txn.date),
             txn.description,
             txn.category,
             txn.type === 'in' ? txn.amount : '',
@@ -389,9 +390,9 @@ export default function CashBookPage() {
                                     filteredTransactions.map(txn => (
                                         <tr key={txn.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{ padding: '1rem' }}>
-                                                {new Date(txn.date).toLocaleDateString()}<br />
+                                                {formatDate(txn.date)}<br />
                                                 <span className="text-muted" style={{ fontSize: '0.875rem' }}>
-                                                    {new Date(txn.date).toLocaleTimeString()}
+                                                    {new Date(txn.date).toLocaleTimeString('en-IN')}
                                                 </span>
                                             </td>
                                             <td style={{ padding: '1rem' }}>{txn.description}</td>

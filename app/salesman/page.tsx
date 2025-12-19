@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDateTime } from '@/lib/utils';
 
 interface MenuItem {
     id: number;
@@ -288,7 +289,7 @@ export default function SalesmanDashboard() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                     <div>
                                         <h3 style={{ margin: 0 }}>Order #{order.order_number || order.id}</h3>
-                                        <p className="text-muted" style={{ fontSize: '0.9rem' }}>{new Date(order.created_at).toLocaleString()}</p>
+                                        <p className="text-muted" style={{ fontSize: '0.9rem' }}>{formatDateTime(order.created_at)}</p>
                                     </div>
                                     <span className="badge" style={{ background: 'var(--info)', color: 'white' }}>Pending</span>
                                 </div>

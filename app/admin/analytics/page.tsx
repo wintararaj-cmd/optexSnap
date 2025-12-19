@@ -6,6 +6,7 @@ import {
     LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { formatDate } from '@/lib/utils';
 
 interface AnalyticsData {
     totalRevenue: number;
@@ -113,7 +114,7 @@ export default function AnalyticsPage() {
             // Revenue by day
             const revenueByDayMap = new Map<string, { revenue: number; orders: number }>();
             filteredOrders.forEach((order: any) => {
-                const date = new Date(order.created_at).toLocaleDateString();
+                const date = new Date(order.created_at).toISOString().split('T')[0];
                 const revenue = parseFloat(order.total_amount);
 
                 if (revenueByDayMap.has(date)) {
@@ -127,7 +128,11 @@ export default function AnalyticsPage() {
 
             const revenueByDay = Array.from(revenueByDayMap.entries())
                 .map(([date, data]) => ({ date, ...data }))
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                .sort((a, b) => a.date.localeCompare(b.date))
+                .map(item => ({
+                    ...item,
+                    date: formatDate(item.date)
+                }));
 
             // Orders by status
             const statusMap = new Map<string, number>();

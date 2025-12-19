@@ -28,6 +28,7 @@ interface DeliveryLocation {
 }
 
 import { ReceiptPrinter } from '@/lib/receipt-printer';
+import { formatDate } from '@/lib/utils';
 
 export default function CreateOrderPage() {
     const router = useRouter();
@@ -103,14 +104,7 @@ export default function CreateOrderPage() {
         return null;
     };
 
-    // Date formatting helper
-    const formatDate = (date: Date | string) => {
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
+
 
 
     const filteredItems = menuItems.filter(item => {

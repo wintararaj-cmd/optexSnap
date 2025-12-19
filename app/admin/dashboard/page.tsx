@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { formatDate } from '@/lib/utils';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -218,7 +219,7 @@ export default function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td style={{ padding: '1rem' }}>
-                                                {new Date(order.created_at).toLocaleDateString()}
+                                                {formatDate(order.created_at)}
                                             </td>
                                         </tr>
                                     ))}
