@@ -90,24 +90,29 @@ export default function SaleBookPage() {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+        const endOfDay = new Date(today);
+        endOfDay.setHours(23, 59, 59, 999);
+
         switch (dateFilter) {
             case 'today':
-                return { start: today, end: new Date() };
+                return { start: today, end: endOfDay };
             case 'week':
                 const weekStart = new Date(today);
                 weekStart.setDate(today.getDate() - 7);
-                return { start: weekStart, end: new Date() };
+                return { start: weekStart, end: endOfDay };
             case 'month':
                 const monthStart = new Date(today);
                 monthStart.setMonth(today.getMonth() - 1);
-                return { start: monthStart, end: new Date() };
+                return { start: monthStart, end: endOfDay };
             case 'custom':
+                const customEnd = customEndDate ? new Date(customEndDate) : new Date();
+                if (customEndDate) customEnd.setHours(23, 59, 59, 999);
                 return {
                     start: customStartDate ? new Date(customStartDate) : new Date(0),
-                    end: customEndDate ? new Date(customEndDate) : new Date(),
+                    end: customEnd,
                 };
             default:
-                return { start: new Date(0), end: new Date() };
+                return { start: new Date(0), end: endOfDay }; // All time, end is effectively open but practically now/future
         }
     };
 
