@@ -10,6 +10,7 @@ interface InvoiceData {
     subtotal: number;
     tax: number;
     discount: number;
+    delivery_charge?: number;
     total: number;
     generated_at: string;
     customer_name: string;
@@ -179,6 +180,7 @@ export default function InvoicePage() {
                 
                 <div class="text-right">Subtotal: ${Number(invoice.subtotal).toFixed(2)}</div>
                 ${(settings?.gstType === 'regular' && Number(invoice.tax) > 0) ? `<div class="text-right">Tax: ${Number(invoice.tax).toFixed(2)}</div>` : ''}
+                ${(invoice.delivery_charge && Number(invoice.delivery_charge) > 0) ? `<div class="text-right">Delivery Charge: ${Number(invoice.delivery_charge).toFixed(2)}</div>` : ''}
                 ${Number(invoice.discount) > 0 ? `<div class="text-right">Discount: -${Number(invoice.discount).toFixed(2)}</div>` : ''}
                 <div class="text-right bold" style="font-size: 20px; margin-top: 5px;">TOTAL: ${Number(invoice.total).toFixed(2)}</div>
                 
@@ -415,6 +417,7 @@ export default function InvoicePage() {
             printer.alignRight();
             printer.textLine(`Subtotal: ${Number(invoice.subtotal).toFixed(2)}`);
             if (settings?.gstType === 'regular' && Number(invoice.tax) > 0) printer.textLine(`Tax: ${Number(invoice.tax).toFixed(2)}`);
+            if (invoice.delivery_charge && Number(invoice.delivery_charge) > 0) printer.textLine(`Delivery Charge: ${Number(invoice.delivery_charge).toFixed(2)}`);
             if (Number(invoice.discount) > 0) printer.textLine(`Discount: -${Number(invoice.discount).toFixed(2)}`);
 
             printer.setSize(2, 2); // Large Total
@@ -473,6 +476,7 @@ export default function InvoicePage() {
             `*━━━━━━━━━━━━━━━━*\n\n` +
             `💰 *Subtotal:* ₹${parseFloat(invoice.subtotal.toString()).toFixed(2)}\n` +
             ((settings?.gstType === 'regular' && invoice.tax > 0) ? `📊 *Tax:* ₹${parseFloat(invoice.tax.toString()).toFixed(2)}\n` : '') +
+            ((invoice.delivery_charge && invoice.delivery_charge > 0) ? `🚚 *Delivery Charge:* ₹${parseFloat(invoice.delivery_charge.toString()).toFixed(2)}\n` : '') +
             `${invoice.discount > 0 ? `🎁 *Discount:* -₹${parseFloat(invoice.discount.toString()).toFixed(2)}\n` : ''}` +
             `*━━━━━━━━━━━━━━━━*\n` +
             `💳 *TOTAL:* ₹${parseFloat(invoice.total.toString()).toFixed(2)}\n\n` +
@@ -795,6 +799,12 @@ export default function InvoicePage() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', padding: settings?.printerType === 'thermal' ? '0.125rem 0' : '0.5rem 0', fontSize: settings?.printerType === 'thermal' ? '0.75rem' : 'inherit' }}>
                                     <span>Tax:</span>
                                     <span>₹{parseFloat(invoice.tax.toString()).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {invoice.delivery_charge && parseFloat(invoice.delivery_charge.toString()) > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', padding: settings?.printerType === 'thermal' ? '0.125rem 0' : '0.5rem 0', fontSize: settings?.printerType === 'thermal' ? '0.75rem' : 'inherit' }}>
+                                    <span>Delivery Charge:</span>
+                                    <span>₹{parseFloat(invoice.delivery_charge.toString()).toFixed(2)}</span>
                                 </div>
                             )}
                             {invoice.discount > 0 && (

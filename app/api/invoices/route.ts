@@ -11,6 +11,7 @@ export async function GET(request: Request) {
             SELECT i.*, o.customer_name, o.customer_phone, o.customer_address, 
                    o.items, o.payment_method, o.payment_status, o.order_type,
                    o.created_at as order_date, o.table_number, o.order_number,
+                   o.delivery_charge,
                    COALESCE(i.discount, o.discount, 0) as discount
             FROM invoices i
             JOIN orders o ON i.order_id = o.id
