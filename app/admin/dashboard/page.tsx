@@ -58,43 +58,6 @@ export default function AdminDashboard() {
         router.push('/admin');
     };
 
-    const handleRunMigration = async () => {
-        if (!confirm('Run database migration to fix expenses table?')) return;
-
-        try {
-            const response = await fetch('/api/admin/run-migration', { method: 'POST' });
-            const data = await response.json();
-
-            if (data.success) {
-                alert('Migration completed successfully!\n\nColumns: ' + data.columns.join(', '));
-            } else {
-                alert('Migration failed: ' + (data.details || data.error));
-            }
-        } catch (error: any) {
-            alert('Error running migration: ' + error.message);
-        }
-    };
-
-    const handleSyncInvoices = async () => {
-        if (!confirm('Sync all invoice totals with their corresponding orders?\n\nThis will fix any mismatches between order and invoice totals.')) return;
-
-        try {
-            const response = await fetch('/api/admin/sync-invoices', { method: 'POST' });
-            const data = await response.json();
-
-            if (data.success) {
-                alert(`✅ Successfully synced ${data.updated.length} invoice(s)!\n\n` +
-                    (data.updated.length > 0 ? 'Updated invoices:\n' + data.updated.map((inv: any) =>
-                        `- ${inv.invoice_number} (Order: ${inv.order_number}): ₹${inv.total}`
-                    ).join('\n') : 'All invoices are already in sync!'));
-            } else {
-                alert('Sync failed: ' + data.error);
-            }
-        } catch (error: any) {
-            alert('Error syncing invoices: ' + error.message);
-        }
-    };
-
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
@@ -110,12 +73,6 @@ export default function AdminDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <h1>Admin Dashboard</h1>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button onClick={handleSyncInvoices} className="btn btn-success" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
-                            🔄 Sync Invoices
-                        </button>
-                        <button onClick={handleRunMigration} className="btn btn-warning" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
-                            🔧 Fix Database
-                        </button>
                         <button onClick={handleLogout} className="btn btn-ghost" style={{ cursor: 'pointer', position: 'relative', zIndex: 20 }}>
                             Logout
                         </button>
