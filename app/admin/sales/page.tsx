@@ -343,6 +343,7 @@ export default function SaleBookPage() {
                                     <th style={{ padding: '1rem', textAlign: 'left' }}>Source</th>
                                     <th style={{ padding: '1rem', textAlign: 'left' }}>Customer</th>
                                     <th style={{ padding: '1rem', textAlign: 'left' }}>Type</th>
+                                    <th style={{ padding: '1rem', textAlign: 'left' }}>Payment</th>
                                     <th style={{ padding: '1rem', textAlign: 'right' }}>Amount</th>
                                     <th style={{ padding: '1rem', textAlign: 'center' }}>Status</th>
                                 </tr>
@@ -350,7 +351,7 @@ export default function SaleBookPage() {
                             <tbody>
                                 {filteredSales.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted">
+                                        <td colSpan={8} style={{ padding: '2rem', textAlign: 'center' }} className="text-muted">
                                             No sales found for the selected filters
                                         </td>
                                     </tr>
@@ -380,6 +381,21 @@ export default function SaleBookPage() {
                                                     {sale.order_type || 'delivery'}
                                                 </span>
                                                 {sale.table_number && <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: 'var(--primary)' }}>Table: {sale.table_number}</div>}
+                                            </td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <span className="badge" style={{
+                                                    textTransform: 'uppercase',
+                                                    background: sale.payment_method === 'cash' ? 'var(--success)' :
+                                                        sale.payment_method === 'upi' ? 'var(--info)' :
+                                                            sale.payment_method === 'card' ? 'var(--warning)' : 'var(--secondary)',
+                                                    color: 'white'
+                                                }}>
+                                                    {sale.payment_method === 'cash' ? '💵 Cash' :
+                                                        sale.payment_method === 'upi' ? '📱 UPI' :
+                                                            sale.payment_method === 'card' ? '💳 Card' :
+                                                                sale.payment_method === 'online' ? '🌐 Online' :
+                                                                    sale.payment_method || 'Cash'}
+                                                </span>
                                             </td>
                                             <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>
                                                 ₹{parseFloat(sale.total_amount.toString()).toFixed(2)}
