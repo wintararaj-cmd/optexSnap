@@ -49,6 +49,7 @@ export async function PUT(
             items,
             subtotal,
             tax,
+            discount,
             total_amount,
             payment_method,
             table_number,
@@ -95,13 +96,14 @@ export async function PUT(
            items = COALESCE($7, items),
            subtotal = COALESCE($8, subtotal),
            tax = COALESCE($9, tax),
-           total_amount = COALESCE($10, total_amount),
-           payment_method = COALESCE($11, payment_method),
-           table_number = COALESCE($12, table_number),
-           notes = COALESCE($13, notes),
-           order_type = COALESCE($14, order_type),
+           discount = COALESCE($10, discount),
+           total_amount = COALESCE($11, total_amount),
+           payment_method = COALESCE($12, payment_method),
+           table_number = COALESCE($13, table_number),
+           notes = COALESCE($14, notes),
+           order_type = COALESCE($15, order_type),
            updated_at = CURRENT_TIMESTAMP
-       WHERE id = $15
+       WHERE id = $16
        RETURNING *`,
             [
                 order_status,
@@ -113,6 +115,7 @@ export async function PUT(
                 items ? JSON.stringify(items) : null,
                 subtotal,
                 tax,
+                discount,
                 total_amount,
                 payment_method,
                 table_number,
@@ -126,6 +129,19 @@ export async function PUT(
             return NextResponse.json(
                 { success: false, error: 'Order not found' },
                 { status: 404 }
+            );
+        }
+
+        // Also update the corresponding invoice if discount, subtotal, tax, or total_amount changed
+        if (discount !== undefined || subtotal !== undefined || tax !== undefined || total_amount !== undefined) {
+            await query(
+                `UPDATE invoices 
+                 SET subtotal = COALESCE($1, subtotal),
+                     tax = COALESCE($2, tax),
+                     discount = COALESCE($3, discount),
+                     total = COALESCE($4, total)
+                 WHERE order_id = $5`,
+                [subtotal, tax, discount, total_amount, params.id]
             );
         }
 
