@@ -135,6 +135,30 @@ export default function AdminOrdersPage() {
         }
     };
 
+    const updatePaymentMethod = async (orderId: number, method: string) => {
+        try {
+            console.log('Updating payment method:', orderId, method);
+            const response = await fetch(`/api/orders/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_method: method }),
+            });
+
+            const data = await response.json();
+            console.log('Update response:', data);
+
+            if (data.success) {
+                fetchOrders();
+                alert(`Payment method updated to: ${method}`);
+            } else {
+                alert(`Failed to update payment method: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error updating payment method:', error);
+            alert('An error occurred while updating payment method. Check console for details.');
+        }
+    };
+
     const updateDiscount = async (orderId: number, discount: number) => {
         try {
             const order = orders.find(o => o.id === orderId);
@@ -602,6 +626,23 @@ export default function AdminOrdersPage() {
                                         <option value="pending">Pending</option>
                                         <option value="paid">Paid</option>
                                         <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        Payment Method
+                                    </label>
+                                    <select
+                                        value={order.payment_method || 'cash'}
+                                        onChange={(e) => updatePaymentMethod(order.id, e.target.value)}
+                                        className="input"
+                                        style={{ textTransform: 'capitalize' }}
+                                    >
+                                        <option value="cash">Cash</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="card">Card</option>
+                                        <option value="online">Online</option>
                                     </select>
                                 </div>
 
