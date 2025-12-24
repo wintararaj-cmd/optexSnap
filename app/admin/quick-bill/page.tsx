@@ -42,6 +42,7 @@ export default function QuickBillPage() {
     const [customerPhone, setCustomerPhone] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [discount, setDiscount] = useState(0);
+    const [manualDeliveryCharge, setManualDeliveryCharge] = useState(0);
 
     // Receipt Data for Printing
     const [receiptData, setReceiptData] = useState<any>(null);
@@ -129,8 +130,7 @@ export default function QuickBillPage() {
     };
 
 
-
-    const grandTotal = calculateTotal() + calculateTax() - discount;
+    const grandTotal = calculateTotal() + calculateTax() + manualDeliveryCharge - discount;
 
     // PRINTING LOGIC
     const printReceiptFallback = (order: any, settings: any) => {
@@ -212,6 +212,7 @@ export default function QuickBillPage() {
                 
                 <div class="text-right">Subtotal: ${Number(order.subtotal).toFixed(2)}</div>
                 ${(settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                ${Number(order.delivery_charge || 0) > 0 ? `<div class="text-right">Delivery Charge: ${Number(order.delivery_charge).toFixed(2)}</div>` : ''}
                 ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
@@ -304,6 +305,7 @@ export default function QuickBillPage() {
             printer.alignRight();
             printer.textLine(`Subtotal: ${Number(order.subtotal).toFixed(2)}`);
             if (settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            if (Number(order.delivery_charge || 0) > 0) printer.textLine(`Delivery Charge: ${Number(order.delivery_charge).toFixed(2)}`);
             if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
 
             printer.setSize(2, 2); // Large Total
@@ -352,7 +354,7 @@ export default function QuickBillPage() {
                 order_status: 'delivered', // Immediate complete
                 payment_status: 'paid',   // Immediate paid
                 discount: discount,
-                delivery_charge: 0
+                delivery_charge: manualDeliveryCharge
             };
 
             const res = await fetch('/api/orders', {
@@ -377,7 +379,8 @@ export default function QuickBillPage() {
                         total_amount: grandTotal,
                         subtotal: calculateTotal(),
                         tax_amount: calculateTax(),
-                        discount_amount: discount
+                        discount_amount: discount,
+                        delivery_charge: manualDeliveryCharge
                     };
                     await handlePrintBill(printableOrder);
                 } else if (action === 'whatsapp') {
@@ -390,6 +393,8 @@ export default function QuickBillPage() {
                 setCart([]);
                 setCustomerName('');
                 setCustomerPhone('');
+                setDiscount(0);
+                setManualDeliveryCharge(0);
             } else {
                 alert('Failed to create bill: ' + data.error);
             }
@@ -542,6 +547,18 @@ export default function QuickBillPage() {
                                             <span>₹{calculateTax().toFixed(2)}</span>
                                         </div>
                                     )}
+                                    {manualDeliveryCharge > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                            <span>Delivery Charge:</span>
+                                            <span>₹{manualDeliveryCharge.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {discount > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                            <span>Discount:</span>
+                                            <span>-₹{discount.toFixed(2)}</span>
+                                        </div>
+                                    )}
 
                                     {/* Discount Input */}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
@@ -552,6 +569,29 @@ export default function QuickBillPage() {
                                             placeholder="0"
                                             value={discount || ''}
                                             onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                                            style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    </div>
+
+                                    {/* Delivery Charge Input */}
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        marginBottom: '0.75rem',
+                                        padding: '0.5rem',
+                                        background: 'rgba(59, 130, 246, 0.1)',
+                                        borderRadius: '4px'
+                                    }}>
+                                        <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Delivery Charge (₹):</label>
+                                        <input
+                                            type="number"
+                                            className="input"
+                                            placeholder="0"
+                                            value={manualDeliveryCharge || ''}
+                                            onChange={e => setManualDeliveryCharge(Math.max(0, Number(e.target.value)))}
                                             style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
                                             min="0"
                                             step="0.01"
