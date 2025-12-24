@@ -572,6 +572,11 @@ export default function CreateOrderPage() {
                                     />
                                 </div>
 
+                                {/* DEBUG MARKER - Remove after verification */}
+                                <div style={{ background: 'yellow', color: 'black', padding: '5px', marginBottom: '5px', fontWeight: 'bold', textAlign: 'center' }}>
+                                    🔍 DEBUG: Code Version b4cba90 - If you see this, deployment is updated!
+                                </div>
+
                                 {/* Manual Delivery Charge Input */}
                                 <div style={{
                                     display: 'flex',
