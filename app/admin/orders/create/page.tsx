@@ -572,30 +572,43 @@ export default function CreateOrderPage() {
                                     />
                                 </div>
 
-                                {/* DEBUG MARKER - Remove after verification */}
-                                <div style={{ background: 'yellow', color: 'black', padding: '5px', marginBottom: '5px', fontWeight: 'bold', textAlign: 'center' }}>
-                                    🔍 DEBUG: Code Version b4cba90 - If you see this, deployment is updated!
+                                {/* ========== CRITICAL DEBUG SECTION ========== */}
+                                <div style={{
+                                    background: 'red',
+                                    color: 'white',
+                                    padding: '10px',
+                                    marginBottom: '10px',
+                                    fontWeight: 'bold',
+                                    textAlign: 'center',
+                                    fontSize: '16px',
+                                    border: '3px solid yellow'
+                                }}>
+                                    ⚠️ BUILD VERSION: e62afd7 - 2025-12-24 16:41 ⚠️
                                 </div>
 
-                                {/* Manual Delivery Charge Input */}
+                                {/* Manual Delivery Charge Input - SIMPLIFIED */}
                                 <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    marginBottom: '0.75rem',
-                                    padding: '0.5rem',
                                     background: '#e0f2fe',
-                                    borderRadius: '4px',
-                                    border: '1px solid #bae6fd'
+                                    padding: '10px',
+                                    marginBottom: '10px',
+                                    border: '2px solid #0369a1',
+                                    borderRadius: '4px'
                                 }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0369a1' }}>Delivery Charge (₹):</label>
+                                    <div style={{ marginBottom: '5px', fontWeight: 'bold', color: '#0369a1' }}>
+                                        🚚 Delivery Charge (₹):
+                                    </div>
                                     <input
                                         type="number"
                                         className="input"
-                                        placeholder="0"
+                                        placeholder="Enter delivery charge"
                                         value={manualDeliveryCharge || ''}
                                         onChange={e => setManualDeliveryCharge(Math.max(0, Number(e.target.value)))}
-                                        style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px',
+                                            fontSize: '16px',
+                                            border: '1px solid #0369a1'
+                                        }}
                                         min="0"
                                         step="0.01"
                                     />
