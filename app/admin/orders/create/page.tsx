@@ -58,6 +58,7 @@ export default function CreateOrderPage() {
     const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [discount, setDiscount] = useState(0);
+    const [manualDeliveryCharge, setManualDeliveryCharge] = useState(0);
     const [notes, setNotes] = useState('');
 
     useEffect(() => {
@@ -150,6 +151,10 @@ export default function CreateOrderPage() {
     };
 
     const getDeliveryCharge = () => {
+        // If manual delivery charge is set, use it
+        if (manualDeliveryCharge > 0) return manualDeliveryCharge;
+
+        // Otherwise, for delivery orders, use location-based charge
         if (orderType !== 'delivery' || !selectedLocationId) return 0;
         const location = deliveryLocations.find(loc => loc.id === selectedLocationId);
         return location ? Number(location.delivery_charge) : 0;
@@ -237,8 +242,9 @@ export default function CreateOrderPage() {
                 </table>
                 <div class="divider"></div>
                 
-                <div class="text-right">Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}</div>
+                <div class="text-right">Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) - (Number(order.delivery_charge) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}</div>
                 ${(settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) ? `<div class="text-right">Tax: ${Number(order.tax_amount).toFixed(2)}</div>` : ''}
+                ${Number(order.delivery_charge || 0) > 0 ? `<div class="text-right">Delivery Charge: ${Number(order.delivery_charge).toFixed(2)}</div>` : ''}
                 ${Number(order.discount_amount || 0) > 0 ? `<div class="text-right">Discount: -${Number(order.discount_amount).toFixed(2)}</div>` : ''}
                 <div class="text-right header-medium" style="margin-top: 5px;">TOTAL: ${Number(order.total_amount).toFixed(2)}</div>
                 
@@ -335,8 +341,9 @@ export default function CreateOrderPage() {
 
             // Totals
             printer.alignRight();
-            printer.textLine(`Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}`);
+            printer.textLine(`Subtotal: ${Number(order.total_amount - (Number(order.tax_amount) || 0) - (Number(order.delivery_charge) || 0) + (Number(order.discount_amount) || 0)).toFixed(2)}`);
             if (settings?.gstType === 'regular' && Number(order.tax_amount || 0) > 0) printer.textLine(`Tax: ${Number(order.tax_amount).toFixed(2)}`);
+            if (Number(order.delivery_charge || 0) > 0) printer.textLine(`Delivery Charge: ${Number(order.delivery_charge).toFixed(2)}`);
             if (Number(order.discount_amount || 0) > 0) printer.textLine(`Discount: -${Number(order.discount_amount).toFixed(2)}`);
 
             printer.setSize(2, 2); // Large Total
@@ -417,6 +424,7 @@ export default function CreateOrderPage() {
                         order_type: orderType,
                         total_amount: grandTotal,
                         tax_amount: calculateTax(),
+                        delivery_charge: getDeliveryCharge(),
                         discount_amount: discount
                     };
                     await handlePrintBill(printableOrder);
@@ -559,10 +567,10 @@ export default function CreateOrderPage() {
                                         <span>₹{calculateTax().toFixed(2)}</span>
                                     </div>
                                 )}
-                                {orderType === 'delivery' && selectedLocationId && (
+                                {getDeliveryCharge() > 0 && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
                                         <span>Delivery Charge:</span>
-                                        <span>₹{getDeliveryCharge()}</span>
+                                        <span>₹{getDeliveryCharge().toFixed(2)}</span>
                                     </div>
                                 )}
 
@@ -575,6 +583,21 @@ export default function CreateOrderPage() {
                                         placeholder="0"
                                         value={discount || ''}
                                         onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
+                                        style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+
+                                {/* Manual Delivery Charge Input */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Delivery Charge:</label>
+                                    <input
+                                        type="number"
+                                        className="input"
+                                        placeholder="0"
+                                        value={manualDeliveryCharge || ''}
+                                        onChange={e => setManualDeliveryCharge(Math.max(0, Number(e.target.value)))}
                                         style={{ width: '120px', textAlign: 'right', padding: '0.25rem 0.5rem' }}
                                         min="0"
                                         step="0.01"
