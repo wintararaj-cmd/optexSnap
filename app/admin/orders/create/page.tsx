@@ -557,26 +557,9 @@ export default function CreateOrderPage() {
 
                             {/* Subtotal and Discount */}
                             <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                    <span>Subtotal:</span>
-                                    <span>₹{calculateSubtotal().toFixed(2)}</span>
-                                </div>
-                                {calculateTax() > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                        <span>Tax:</span>
-                                        <span>₹{calculateTax().toFixed(2)}</span>
-                                    </div>
-                                )}
-                                {getDeliveryCharge() > 0 && (
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                                        <span>Delivery Charge:</span>
-                                        <span>₹{getDeliveryCharge().toFixed(2)}</span>
-                                    </div>
-                                )}
-
                                 {/* Discount Input */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Discount:</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Discount (₹):</label>
                                     <input
                                         type="number"
                                         className="input"
@@ -590,8 +573,8 @@ export default function CreateOrderPage() {
                                 </div>
 
                                 {/* Manual Delivery Charge Input */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Delivery Charge:</label>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 500 }}>Delivery Charge (₹):</label>
                                     <input
                                         type="number"
                                         className="input"
@@ -602,6 +585,32 @@ export default function CreateOrderPage() {
                                         min="0"
                                         step="0.01"
                                     />
+                                </div>
+
+                                {/* Totals Breakdown */}
+                                <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                        <span>Subtotal:</span>
+                                        <span>₹{calculateSubtotal().toFixed(2)}</span>
+                                    </div>
+                                    {calculateTax() > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem' }}>
+                                            <span>Tax:</span>
+                                            <span>₹{calculateTax().toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {getDeliveryCharge() > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem', color: 'var(--info)' }}>
+                                            <span>Delivery Charge:</span>
+                                            <span>₹{getDeliveryCharge().toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {discount > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.25rem', color: 'var(--success)' }}>
+                                            <span>Discount:</span>
+                                            <span>-₹{discount.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

@@ -560,6 +560,36 @@ export default function AdminOrdersPage() {
                                         <span>₹{(item.menuItem.price * item.quantity).toFixed(2)}</span>
                                     </div>
                                 ))}
+
+                                {/* Order Summary */}
+                                <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-color)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                                        <span className="text-muted">Subtotal:</span>
+                                        <span>₹{parseFloat(order.subtotal || order.total_amount).toFixed(2)}</span>
+                                    </div>
+                                    {parseFloat(order.tax || 0) > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                                            <span className="text-muted">Tax:</span>
+                                            <span>₹{parseFloat(order.tax).toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {parseFloat(order.delivery_charge || 0) > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                                            <span className="text-muted">Delivery Charge:</span>
+                                            <span>₹{parseFloat(order.delivery_charge).toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {parseFloat(order.discount || 0) > 0 && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--success)' }}>
+                                            <span>Discount:</span>
+                                            <span>-₹{parseFloat(order.discount).toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                                        <span>Total:</span>
+                                        <span style={{ color: 'var(--primary)' }}>₹{parseFloat(order.total_amount).toFixed(2)}</span>
+                                    </div>
+                                </div>
                             </div>
 
                             {order.customer_address && (
