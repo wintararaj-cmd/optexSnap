@@ -12,4 +12,5 @@ const nextConfig = {
     },
 };
 
+// Force rebuild: 2025-12-24 16:35 - Delivery charge field update
 export default nextConfig;
