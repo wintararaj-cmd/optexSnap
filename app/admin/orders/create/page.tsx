@@ -573,8 +573,17 @@ export default function CreateOrderPage() {
                                 </div>
 
                                 {/* Manual Delivery Charge Input */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', padding: '0.5rem', background: 'rgba(var(--info-rgb, 59, 130, 246), 0.1)', borderRadius: '4px' }}>
-                                    <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Delivery Charge (₹):</label>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '0.75rem',
+                                    padding: '0.5rem',
+                                    background: '#e0f2fe',
+                                    borderRadius: '4px',
+                                    border: '1px solid #bae6fd'
+                                }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 600, color: '#0369a1' }}>Delivery Charge (₹):</label>
                                     <input
                                         type="number"
                                         className="input"
