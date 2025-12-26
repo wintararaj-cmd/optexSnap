@@ -42,7 +42,7 @@ export async function PUT(
     try {
         const { id } = params;
         const body = await request.json();
-        const { location_name, delivery_charge, is_active } = body;
+        const { location_name, delivery_charge, latitude, longitude, radius_km, is_active } = body;
 
         // Validation
         if (location_name !== undefined && location_name.trim() === '') {
@@ -55,6 +55,28 @@ export async function PUT(
         if (delivery_charge !== undefined && delivery_charge < 0) {
             return NextResponse.json(
                 { success: false, error: 'Delivery charge cannot be negative' },
+                { status: 400 }
+            );
+        }
+
+        // Validate GPS coordinates if provided
+        if ((latitude !== undefined && longitude === undefined) || (latitude === undefined && longitude !== undefined)) {
+            return NextResponse.json(
+                { success: false, error: 'Both latitude and longitude must be provided together' },
+                { status: 400 }
+            );
+        }
+
+        if (latitude !== undefined && (latitude < -90 || latitude > 90)) {
+            return NextResponse.json(
+                { success: false, error: 'Latitude must be between -90 and 90' },
+                { status: 400 }
+            );
+        }
+
+        if (longitude !== undefined && (longitude < -180 || longitude > 180)) {
+            return NextResponse.json(
+                { success: false, error: 'Longitude must be between -180 and 180' },
                 { status: 400 }
             );
         }
@@ -72,6 +94,15 @@ export async function PUT(
         if (delivery_charge !== undefined) {
             updates.push(`delivery_charge = $${paramCount++}`);
             values.push(delivery_charge);
+        }
+
+        if (latitude !== undefined && longitude !== undefined) {
+            updates.push(`latitude = $${paramCount++}`);
+            values.push(latitude);
+            updates.push(`longitude = $${paramCount++}`);
+            values.push(longitude);
+            updates.push(`radius_km = $${paramCount++}`);
+            values.push(radius_km || 5.0);
         }
 
         if (is_active !== undefined) {

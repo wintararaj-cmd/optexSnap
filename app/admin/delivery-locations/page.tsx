@@ -7,6 +7,9 @@ interface DeliveryLocation {
     id: number;
     location_name: string;
     delivery_charge: number;
+    latitude?: number;
+    longitude?: number;
+    radius_km?: number;
     is_active: boolean;
     created_at: string;
     updated_at: string;
@@ -22,6 +25,9 @@ export default function DeliveryLocationsPage() {
     // Form state
     const [locationName, setLocationName] = useState('');
     const [deliveryCharge, setDeliveryCharge] = useState('');
+    const [latitude, setLatitude] = useState('');
+    const [longitude, setLongitude] = useState('');
+    const [radiusKm, setRadiusKm] = useState('5.0');
     const [isActive, setIsActive] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -52,6 +58,9 @@ export default function DeliveryLocationsPage() {
         setEditingLocation(null);
         setLocationName('');
         setDeliveryCharge('');
+        setLatitude('');
+        setLongitude('');
+        setRadiusKm('5.0');
         setIsActive(true);
         setShowModal(true);
     };
@@ -60,6 +69,9 @@ export default function DeliveryLocationsPage() {
         setEditingLocation(location);
         setLocationName(location.location_name);
         setDeliveryCharge(location.delivery_charge.toString());
+        setLatitude(location.latitude?.toString() || '');
+        setLongitude(location.longitude?.toString() || '');
+        setRadiusKm(location.radius_km?.toString() || '5.0');
         setIsActive(location.is_active);
         setShowModal(true);
     };
@@ -84,14 +96,23 @@ export default function DeliveryLocationsPage() {
 
             const method = editingLocation ? 'PUT' : 'POST';
 
+            const payload: any = {
+                location_name: locationName.trim(),
+                delivery_charge: parseFloat(deliveryCharge),
+                is_active: isActive,
+            };
+
+            // Add GPS coordinates if provided
+            if (latitude && longitude) {
+                payload.latitude = parseFloat(latitude);
+                payload.longitude = parseFloat(longitude);
+                payload.radius_km = parseFloat(radiusKm) || 5.0;
+            }
+
             const response = await fetch(url, {
                 method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    location_name: locationName.trim(),
-                    delivery_charge: parseFloat(deliveryCharge),
-                    is_active: isActive,
-                }),
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
@@ -303,6 +324,75 @@ export default function DeliveryLocationsPage() {
                                 className="input"
                                 placeholder="0.00"
                             />
+                        </div>
+
+                        {/* GPS Coordinates Section */}
+                        <div style={{
+                            marginBottom: '1rem',
+                            padding: '1rem',
+                            background: 'rgba(59, 130, 246, 0.1)',
+                            borderRadius: '8px',
+                            border: '1px dashed rgba(59, 130, 246, 0.3)'
+                        }}>
+                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--primary)' }}>
+                                📍 GPS Coordinates (Optional - for Auto-Detection)
+                            </h3>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                                Set GPS coordinates to enable automatic location detection for customers.
+                                <a href="https://www.google.com/maps" target="_blank" style={{ color: 'var(--primary)', marginLeft: '0.25rem' }}>
+                                    Find coordinates on Google Maps →
+                                </a>
+                            </p>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 500 }}>
+                                        Latitude
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.000001"
+                                        value={latitude}
+                                        onChange={(e) => setLatitude(e.target.value)}
+                                        className="input"
+                                        placeholder="28.6139"
+                                        style={{ fontSize: '0.875rem' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 500 }}>
+                                        Longitude
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.000001"
+                                        value={longitude}
+                                        onChange={(e) => setLongitude(e.target.value)}
+                                        className="input"
+                                        placeholder="77.2090"
+                                        style={{ fontSize: '0.875rem' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 500 }}>
+                                    Delivery Radius (km)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    min="0.1"
+                                    value={radiusKm}
+                                    onChange={(e) => setRadiusKm(e.target.value)}
+                                    className="input"
+                                    placeholder="5.0"
+                                    style={{ fontSize: '0.875rem' }}
+                                />
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                    Customers within this radius will be matched to this zone
+                                </p>
+                            </div>
                         </div>
 
                         <div style={{ marginBottom: '1.5rem' }}>

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { location_name, delivery_charge, is_active } = body;
+        const { location_name, delivery_charge, latitude, longitude, radius_km, is_active } = body;
 
         // Validation
         if (!location_name || location_name.trim() === '') {
@@ -49,12 +49,46 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const result = await query(
-            `INSERT INTO delivery_locations (location_name, delivery_charge, is_active) 
-             VALUES ($1, $2, $3) 
-             RETURNING *`,
-            [location_name.trim(), delivery_charge, is_active !== false]
-        );
+        // Validate GPS coordinates if provided
+        if ((latitude && !longitude) || (!latitude && longitude)) {
+            return NextResponse.json(
+                { success: false, error: 'Both latitude and longitude must be provided together' },
+                { status: 400 }
+            );
+        }
+
+        if (latitude && (latitude < -90 || latitude > 90)) {
+            return NextResponse.json(
+                { success: false, error: 'Latitude must be between -90 and 90' },
+                { status: 400 }
+            );
+        }
+
+        if (longitude && (longitude < -180 || longitude > 180)) {
+            return NextResponse.json(
+                { success: false, error: 'Longitude must be between -180 and 180' },
+                { status: 400 }
+            );
+        }
+
+        // Build query dynamically based on provided fields
+        let queryText = `INSERT INTO delivery_locations (location_name, delivery_charge, is_active`;
+        let values: any[] = [location_name.trim(), delivery_charge, is_active !== false];
+        let paramCount = 3;
+
+        if (latitude && longitude) {
+            queryText += `, latitude, longitude, radius_km`;
+            values.push(latitude, longitude, radius_km || 5.0);
+            paramCount += 3;
+        }
+
+        queryText += `) VALUES ($1, $2, $3`;
+        if (latitude && longitude) {
+            queryText += `, $4, $5, $6`;
+        }
+        queryText += `) RETURNING *`;
+
+        const result = await query(queryText, values);
 
         return NextResponse.json({
             success: true,

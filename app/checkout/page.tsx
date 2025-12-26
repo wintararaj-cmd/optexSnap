@@ -9,6 +9,9 @@ interface DeliveryLocation {
     id: number;
     location_name: string;
     delivery_charge: number;
+    latitude?: number;
+    longitude?: number;
+    radius_km?: number;
     is_active: boolean;
 }
 
@@ -20,6 +23,8 @@ export default function CheckoutPage() {
     const [settings, setSettings] = useState<any>(null);
     const [deliveryLocations, setDeliveryLocations] = useState<DeliveryLocation[]>([]);
     const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+    const [detectingLocation, setDetectingLocation] = useState(false);
+    const [detectedLocationInfo, setDetectedLocationInfo] = useState<string>('');
 
     useEffect(() => {
         // Fetch settings
@@ -132,6 +137,84 @@ export default function CheckoutPage() {
         }
     };
 
+    const detectMyLocation = async () => {
+        if (!navigator.geolocation) {
+            alert('GPS is not supported by your browser. Please select your location manually.');
+            return;
+        }
+
+        setDetectingLocation(true);
+        setDetectedLocationInfo('');
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                try {
+                    const response = await fetch('/api/delivery-locations/detect', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ latitude, longitude })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Auto-select the detected location
+                        setSelectedLocationId(data.data.location.id);
+                        setDetectedLocationInfo(
+                            `✓ Detected: ${data.data.location.location_name} (${data.data.distance.toFixed(1)}km away)`
+                        );
+                    } else {
+                        // Show nearest location as suggestion
+                        setDetectedLocationInfo(
+                            `⚠️ ${data.error}. Please select manually.`
+                        );
+                        if (data.data?.nearestLocation) {
+                            // Optionally auto-select nearest location
+                            const confirmUseNearest = confirm(
+                                `You're outside delivery zones. Use nearest zone "${data.data.nearestLocation.location_name}" (${data.data.nearestLocation.distance.toFixed(1)}km away)?`
+                            );
+                            if (confirmUseNearest) {
+                                setSelectedLocationId(data.data.nearestLocation.id);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error detecting location:', error);
+                    alert('Failed to detect location. Please select manually.');
+                } finally {
+                    setDetectingLocation(false);
+                }
+            },
+            (error) => {
+                setDetectingLocation(false);
+                let errorMessage = 'Could not get your location. ';
+
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage += 'Please allow location access and try again.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage += 'Location information is unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage += 'Location request timed out.';
+                        break;
+                    default:
+                        errorMessage += 'An unknown error occurred.';
+                }
+
+                alert(errorMessage + ' Please select your location manually.');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    };
+
     if (cart.length === 0) {
         router.push('/cart');
         return null;
@@ -178,9 +261,49 @@ export default function CheckoutPage() {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                                        Delivery Location *
-                                    </label>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                        <label style={{ fontWeight: 500 }}>
+                                            Delivery Location *
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={detectMyLocation}
+                                            disabled={detectingLocation}
+                                            className="btn btn-ghost"
+                                            style={{
+                                                padding: '0.5rem 1rem',
+                                                fontSize: '0.875rem',
+                                                background: 'rgba(59, 130, 246, 0.1)',
+                                                border: '1px solid rgba(59, 130, 246, 0.3)'
+                                            }}
+                                        >
+                                            {detectingLocation ? (
+                                                <>
+                                                    <span className="spinner" style={{ width: '14px', height: '14px', marginRight: '0.5rem' }}></span>
+                                                    Detecting...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    📍 Detect My Location
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {detectedLocationInfo && (
+                                        <div style={{
+                                            marginBottom: '0.75rem',
+                                            padding: '0.75rem',
+                                            background: detectedLocationInfo.startsWith('✓') ? 'rgba(34, 197, 94, 0.1)' : 'rgba(251, 146, 60, 0.1)',
+                                            border: `1px solid ${detectedLocationInfo.startsWith('✓') ? 'rgba(34, 197, 94, 0.3)' : 'rgba(251, 146, 60, 0.3)'}`,
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                            color: detectedLocationInfo.startsWith('✓') ? 'var(--success)' : 'var(--warning)'
+                                        }}>
+                                            {detectedLocationInfo}
+                                        </div>
+                                    )}
+
                                     <select
                                         required
                                         className="input"
@@ -199,6 +322,10 @@ export default function CheckoutPage() {
                                             📍 Delivery charge: ₹{deliveryCharge.toFixed(2)}
                                         </div>
                                     )}
+
+                                    <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                        💡 Tip: Click "Detect My Location" to automatically find your delivery zone
+                                    </div>
                                 </div>
 
                                 <div>
