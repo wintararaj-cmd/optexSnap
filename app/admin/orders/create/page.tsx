@@ -572,19 +572,6 @@ export default function CreateOrderPage() {
                                     />
                                 </div>
 
-                                {/* ========== CRITICAL DEBUG SECTION ========== */}
-                                <div style={{
-                                    background: 'red',
-                                    color: 'white',
-                                    padding: '10px',
-                                    marginBottom: '10px',
-                                    fontWeight: 'bold',
-                                    textAlign: 'center',
-                                    fontSize: '16px',
-                                    border: '3px solid yellow'
-                                }}>
-                                    ⚠️ BUILD VERSION: e62afd7 - 2025-12-24 16:41 ⚠️
-                                </div>
 
                                 {/* Manual Delivery Charge Input - SIMPLIFIED */}
                                 <div style={{
