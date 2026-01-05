@@ -1,17 +1,26 @@
 import { Pool, QueryResult } from 'pg';
 
 // Create a connection pool
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'restaurant_db',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 60000, // 60 seconds for long operations like imports
-    statement_timeout: 120000, // 120 seconds for individual queries
-});
+// Use DATABASE_URL if available (for Coolify/Railway), otherwise use individual env vars
+const pool = process.env.DATABASE_URL
+    ? new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 60000,
+        statement_timeout: 120000,
+    })
+    : new Pool({
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432'),
+        database: process.env.DB_NAME || 'restaurant_db',
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || '',
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 60000,
+        statement_timeout: 120000,
+    });
 
 // Test the connection
 pool.on('connect', () => {
