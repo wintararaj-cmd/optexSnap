@@ -220,18 +220,73 @@ See `database/import_templates/` for sample formats.
 - **delivery**: View assigned deliveries, update delivery status
 - **salesman**: Create orders, view commission reports
 
+### Google OAuth Setup (Optional)
+
+Enable "Sign in with Google" functionality:
+
+1. **Quick Setup**: See [`GOOGLE_OAUTH_QUICKFIX.md`](./GOOGLE_OAUTH_QUICKFIX.md) (5 minutes)
+2. **Detailed Guide**: See [`GOOGLE_OAUTH_SETUP.md`](./GOOGLE_OAUTH_SETUP.md) (30 minutes)
+
+**What you need:**
+- Google Cloud Console account
+- OAuth 2.0 Client ID and Secret
+- Environment variables configured
+
 ## 🚀 Deployment
 
-### Deploy to Vercel
+### 🌐 Deploy to VPS with Coolify (Recommended)
+
+**Complete deployment guide for 2GB RAM VPS with Coolify and Stalwart Mail Server.**
+
+#### Quick Start (2-3 hours)
+1. **Read**: [`DEPLOYMENT_README.md`](./DEPLOYMENT_README.md) - Start here!
+2. **Follow**: [`DEPLOYMENT_QUICKSTART.md`](./DEPLOYMENT_QUICKSTART.md) - Step-by-step commands
+3. **Track**: [`DEPLOYMENT_CHECKLIST.md`](./DEPLOYMENT_CHECKLIST.md) - Don't miss anything
+4. **Reference**: [`TROUBLESHOOTING_VPS.md`](./TROUBLESHOOTING_VPS.md) - Fix issues
+
+#### Deployment Documentation
+
+| Document | Purpose | Time | Best For |
+|----------|---------|------|----------|
+| [DEPLOYMENT_README.md](./DEPLOYMENT_README.md) | Master index & guide | 30 min read | Understanding the process |
+| [DEPLOYMENT_QUICKSTART.md](./DEPLOYMENT_QUICKSTART.md) | Quick deployment | 2-3 hours | Fast deployment |
+| [DEPLOYMENT_VPS_COOLIFY.md](./DEPLOYMENT_VPS_COOLIFY.md) | Detailed guide | Reference | Deep understanding |
+| [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) | Progress tracker | Throughout | Staying organized |
+| [TROUBLESHOOTING_VPS.md](./TROUBLESHOOTING_VPS.md) | Problem solving | As needed | Fixing issues |
+
+#### What You'll Deploy
+- ✅ **Coolify** - Self-hosted deployment platform
+- ✅ **Stalwart Mail Server** - Email functionality
+- ✅ **PostgreSQL** - Database
+- ✅ **Your App** - Ruchi Restaurant with SSL
+
+#### Requirements
+- VPS with 2 Core CPU, 2GB RAM
+- Ubuntu 22.04/24.04 LTS
+- Domain name
+- 2-3 hours for first deployment
+
+#### Cost Estimate
+- VPS: $5-10/month
+- Domain: $10-15/year
+- **Total: ~$70-130/year**
+
+---
+
+### ☁️ Deploy to Vercel (Alternative)
 
 1. Push code to GitHub
 2. Import project in Vercel
 3. Add environment variables
 4. Deploy
 
-### Deploy to Other Platforms
+**Note**: You'll need a separate database (Supabase, Railway, etc.)
 
-See `DEPLOYMENT_GUIDE.md` for detailed instructions.
+---
+
+### 🐳 Deploy with Docker (Advanced)
+
+See `DEPLOYMENT_VPS_COOLIFY.md` for Docker-based deployment options.
 
 ## 📝 API Documentation
 

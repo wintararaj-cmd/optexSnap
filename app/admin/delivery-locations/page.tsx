@@ -30,6 +30,7 @@ export default function DeliveryLocationsPage() {
     const [radiusKm, setRadiusKm] = useState('5.0');
     const [isActive, setIsActive] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [showMapPicker, setShowMapPicker] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
@@ -334,14 +335,21 @@ export default function DeliveryLocationsPage() {
                             borderRadius: '8px',
                             border: '1px dashed rgba(59, 130, 246, 0.3)'
                         }}>
-                            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--primary)' }}>
-                                📍 GPS Coordinates (Optional - for Auto-Detection)
-                            </h3>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)', margin: 0 }}>
+                                    📍 GPS Coordinates (Optional - for Auto-Detection)
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowMapPicker(true)}
+                                    className="btn btn-primary"
+                                    style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}
+                                >
+                                    🗺️ Pick from Map
+                                </button>
+                            </div>
                             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                                Set GPS coordinates to enable automatic location detection for customers.
-                                <a href="https://www.google.com/maps" target="_blank" style={{ color: 'var(--primary)', marginLeft: '0.25rem' }}>
-                                    Find coordinates on Google Maps →
-                                </a>
+                                Click "Pick from Map" to select location on map, or enter coordinates manually.
                             </p>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
@@ -422,6 +430,203 @@ export default function DeliveryLocationsPage() {
                                 style={{ minWidth: '120px' }}
                             >
                                 {submitting ? 'Saving...' : editingLocation ? 'Update' : 'Add Location'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Map Picker Modal */}
+            {showMapPicker && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 1001,
+                        padding: '1rem'
+                    }}
+                    onClick={() => setShowMapPicker(false)}
+                >
+                    <div
+                        className="glass-card"
+                        style={{
+                            width: '90%',
+                            maxWidth: '600px',
+                            maxHeight: '90vh',
+                            overflow: 'auto'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                            <h2 style={{ margin: 0, marginBottom: '0.5rem' }}>📍 Set GPS Coordinates</h2>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                                Get coordinates from Google Maps and enter them below
+                            </p>
+                        </div>
+
+                        <div style={{ padding: '1.5rem' }}>
+                            {/* Step-by-step instructions */}
+                            <div style={{
+                                marginBottom: '1.5rem',
+                                padding: '1.25rem',
+                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%)',
+                                borderRadius: '12px',
+                                border: '2px solid rgba(59, 130, 246, 0.3)'
+                            }}>
+                                <h3 style={{ margin: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--primary)' }}>
+                                    📋 How to Get Coordinates:
+                                </h3>
+                                <ol style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.9rem', lineHeight: '2' }}>
+                                    <li>
+                                        <strong>Open Google Maps:</strong>{' '}
+                                        <a
+                                            href="https://www.google.com/maps"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                color: 'var(--primary)',
+                                                textDecoration: 'underline',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            Click here to open →
+                                        </a>
+                                    </li>
+                                    <li><strong>Search</strong> for your delivery zone location</li>
+                                    <li><strong>Right-click</strong> on the exact center of the zone</li>
+                                    <li>Click on the <strong>coordinates</strong> at the top of the menu</li>
+                                    <li>Coordinates are <strong>automatically copied!</strong></li>
+                                    <li><strong>Paste</strong> them in the fields below</li>
+                                </ol>
+                            </div>
+
+                            {/* Coordinate inputs */}
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                                            Latitude *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.000001"
+                                            value={latitude}
+                                            onChange={(e) => setLatitude(e.target.value)}
+                                            className="input"
+                                            placeholder="28.6139"
+                                            style={{ fontSize: '1.1rem', padding: '0.75rem' }}
+                                            autoFocus
+                                        />
+                                        <p style={{ margin: 0, marginTop: '0.25rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                            Example: 28.6139
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                                            Longitude *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.000001"
+                                            value={longitude}
+                                            onChange={(e) => setLongitude(e.target.value)}
+                                            className="input"
+                                            placeholder="77.2090"
+                                            style={{ fontSize: '1.1rem', padding: '0.75rem' }}
+                                        />
+                                        <p style={{ margin: 0, marginTop: '0.25rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                            Example: 77.2090
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Success indicator */}
+                            {latitude && longitude && (
+                                <div style={{
+                                    marginBottom: '1rem',
+                                    padding: '1rem',
+                                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%)',
+                                    border: '2px solid rgba(34, 197, 94, 0.4)',
+                                    borderRadius: '12px',
+                                    animation: 'fadeIn 0.3s ease-in'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>✓</span>
+                                        <strong style={{ fontSize: '1rem', color: 'var(--success)' }}>Coordinates Set!</strong>
+                                    </div>
+                                    <div style={{
+                                        fontSize: '1.1rem',
+                                        fontFamily: 'monospace',
+                                        padding: '0.5rem',
+                                        background: 'rgba(255, 255, 255, 0.5)',
+                                        borderRadius: '6px',
+                                        marginTop: '0.5rem'
+                                    }}>
+                                        {latitude}, {longitude}
+                                    </div>
+                                    <a
+                                        href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-block',
+                                            marginTop: '0.75rem',
+                                            color: 'var(--primary)',
+                                            textDecoration: 'underline',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        🗺️ Verify on Google Maps →
+                                    </a>
+                                </div>
+                            )}
+
+                            {/* Quick tips */}
+                            <div style={{
+                                padding: '1rem',
+                                background: 'rgba(251, 146, 60, 0.1)',
+                                border: '1px solid rgba(251, 146, 60, 0.3)',
+                                borderRadius: '8px',
+                                fontSize: '0.8rem'
+                            }}>
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>💡 Pro Tips:</strong>
+                                <ul style={{ margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8' }}>
+                                    <li>You can paste the full string "28.6139, 77.2090" in latitude field</li>
+                                    <li>Make sure to right-click on the <strong>center</strong> of your delivery zone</li>
+                                    <li>Use the "Verify on Google Maps" link above to double-check</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowMapPicker(false)}
+                                className="btn btn-ghost"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (latitude && longitude) {
+                                        setShowMapPicker(false);
+                                    } else {
+                                        alert('Please enter both latitude and longitude');
+                                    }
+                                }}
+                                className="btn btn-primary"
+                                disabled={!latitude || !longitude}
+                                style={{ minWidth: '180px' }}
+                            >
+                                ✓ Use These Coordinates
                             </button>
                         </div>
                     </div>
