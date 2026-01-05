@@ -47,11 +47,17 @@ bkup/
 *.backup
 *.bak
 
-# Database exports
+# Database exports (only data files, not config)
 *.sql
-*.json
+*_2025-*.json
+menu_items_*.json
+categories_*.json
+delivery_locations_*.json
+users_*.json
 !package.json
 !package-lock.json
+!tsconfig.json
+!next.config.*
 
 # Logs
 *.log
@@ -62,5 +68,5 @@ tmp/
 temp/
 *.tmp
 
-# Scripts (not needed in production)
-scripts/
+# Scripts (keep migration scripts for deployment)
+# scripts/
