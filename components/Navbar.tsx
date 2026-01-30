@@ -25,8 +25,8 @@ export default function Navbar() {
         }
     };
 
-    // Hide Navbar on specific POS-like pages
-    if (pathname?.startsWith('/salesman') || pathname?.startsWith('/admin/quick-bill')) {
+    // Hide Navbar on specific POS-like pages OR SaaS Landing pages
+    if (pathname === '/' || pathname?.startsWith('/register') || pathname?.startsWith('/salesman') || pathname?.startsWith('/admin/quick-bill')) {
         return null;
     }
 
@@ -34,7 +34,7 @@ export default function Navbar() {
         <nav className="navbar">
             <div className="container navbar-content">
                 <Link href="/" className="navbar-logo">
-                    Ruchi
+                    OptexSnap
                 </Link>
 
                 <div className="navbar-links">

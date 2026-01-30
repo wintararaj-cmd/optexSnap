@@ -48,7 +48,7 @@ export default function HelpPage() {
                     </button>
                     <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>📚 Help & Documentation</h1>
                     <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '0.95rem' }}>
-                        Complete guide to using Ruchi Restaurant Management System
+                        Complete guide to using OptexSnap Restaurant Management System
                     </p>
                 </div>
             </div>
@@ -113,7 +113,7 @@ export default function HelpPage() {
                         <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
                             <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>First Time Setup</h3>
                             <ol style={{ lineHeight: 1.8, paddingLeft: '1.5rem' }}>
-                                <li><strong>Access the Application:</strong> Open your browser and navigate to your Ruchi application URL</li>
+                                <li><strong>Access the Application:</strong> Open your browser and navigate to your OptexSnap application URL</li>
                                 <li><strong>Admin Login:</strong> Visit <code>/admin</code> to access the admin panel</li>
                                 <li><strong>Default Credentials</strong> (change immediately after first login):
                                     <ul style={{ marginTop: '0.5rem' }}>
@@ -542,8 +542,8 @@ export default function HelpPage() {
                         Contact support for assistance
                     </p>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a href="mailto:support@ruchirestaurant.com" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                            📧 support@ruchirestaurant.com
+                        <a href="mailto:support@optexsnap.com" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                            📧 support@optexsnap.com
                         </a>
                         <span style={{ opacity: 0.5 }}>•</span>
                         <span>🕐 9 AM - 9 PM (Mon-Sat)</span>

@@ -13,6 +13,10 @@ const KEY_MAPPING: Record<string, string> = {
     paperWidth: 'paper_width',
     showLogo: 'show_logo',
     footerText: 'footer_text',
+    paymentGatewayProvider: 'payment_gateway_provider',
+    paymentGatewayKey: 'payment_gateway_key',
+    paymentGatewaySecret: 'payment_gateway_secret',
+    paymentGatewayEnabled: 'payment_gateway_enabled',
 };
 
 const REVERSE_MAPPING: Record<string, string> = Object.entries(KEY_MAPPING).reduce((acc, [k, v]) => {
@@ -37,7 +41,7 @@ export async function GET() {
 
         // Ensure defaults if missing
         const defaults = {
-            restaurantName: 'Ruchi Restaurant',
+            restaurantName: 'OptexSnap',
             restaurantAddress: '',
             restaurantPhone: '',
             restaurantEmail: '',
@@ -47,6 +51,10 @@ export async function GET() {
             paperWidth: '80mm',
             showLogo: true,
             footerText: 'Thank you for your business!',
+            paymentGatewayProvider: 'razorpay',
+            paymentGatewayKey: '',
+            paymentGatewaySecret: '',
+            paymentGatewayEnabled: false,
         };
 
         return NextResponse.json({

@@ -207,7 +207,7 @@ export default function CreateOrderPage() {
                 </style>
             </head>
             <body>
-                <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center header-large">${settings?.restaurantName || 'OptexSnap'}</div>
                 <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
                 <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
                 ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
@@ -289,7 +289,7 @@ export default function CreateOrderPage() {
             // Header
             printer.alignCenter();
             printer.setSize(2, 2); // Double Width, Double Height
-            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(true).textLine(settings?.restaurantName || 'OptexSnap');
             printer.bold(false);
             printer.setSize(1, 1); // Normal
 

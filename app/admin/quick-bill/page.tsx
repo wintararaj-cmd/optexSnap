@@ -177,7 +177,7 @@ export default function QuickBillPage() {
                 </style>
             </head>
             <body>
-                <div class="text-center header-large">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center header-large">${settings?.restaurantName || 'OptexSnap'}</div>
                 <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
                 <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
                 ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
@@ -257,7 +257,7 @@ export default function QuickBillPage() {
             // Header
             printer.alignCenter();
             printer.setSize(2, 2); // Double Width, Double Height
-            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(true).textLine(settings?.restaurantName || 'OptexSnap');
             printer.bold(false);
             printer.setSize(1, 1); // Normal
 
@@ -414,7 +414,7 @@ export default function QuickBillPage() {
 
         const itemsList = cart.map(i => `${i.menuItem.name} x${i.quantity} = ₹${(Number(i.menuItem.price) * i.quantity).toFixed(0)}`).join('%0A');
 
-        const message = `*Ruchi Restaurant - Bill Receipt*%0A` +
+        const message = `*OptexSnap - Bill Receipt*%0A` +
             `Invoice: ${order.invoice_number}%0A` +
             `Date: ${formatDate(new Date())}%0A%0A` +
             `*Items:*%0A${itemsList}%0A` +

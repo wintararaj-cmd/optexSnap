@@ -253,21 +253,49 @@ export default function SalesmanDashboard() {
                     <p className="text-muted">Welcome, {user?.name}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', background: 'var(--glass-bg)', borderRadius: '8px', padding: '4px' }}>
+                    <div style={{
+                        display: 'flex',
+                        background: '#1e293b',
+                        borderRadius: '12px',
+                        padding: '4px',
+                        border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
                         <button
-                            className={`btn ${viewMode === 'create' ? 'btn-primary' : 'btn-ghost'}`}
+                            className="btn"
                             onClick={() => { setViewMode('create'); resetForm(); }}
+                            style={{
+                                background: viewMode === 'create' ? '#4f46e5' : 'transparent',
+                                color: viewMode === 'create' ? 'white' : '#94a3b8',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                transition: 'all 0.2s',
+                                boxShadow: viewMode === 'create' ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+                            }}
                         >
-                            Create Order
+                            + New Order
                         </button>
                         <button
-                            className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-ghost'}`}
+                            className="btn"
                             onClick={() => { setViewMode('list'); fetchPendingOrders(); }}
+                            style={{
+                                background: viewMode === 'list' ? '#4f46e5' : 'transparent',
+                                color: viewMode === 'list' ? 'white' : '#94a3b8',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '8px 16px',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                transition: 'all 0.2s',
+                                boxShadow: viewMode === 'list' ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+                            }}
                         >
-                            Saved Orders ({pendingOrders.length})
+                            Saved ({pendingOrders.length})
                         </button>
                     </div>
-                    <button onClick={logout} className="btn btn-ghost" style={{ color: 'var(--error)' }}>
+                    <button onClick={logout} className="btn btn-ghost" style={{ color: '#ef4444' }}>
                         Logout
                     </button>
                 </div>
@@ -405,11 +433,46 @@ export default function SalesmanDashboard() {
                             {/* Menu Items Grid */}
                             <div className="menu-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
                                 {loading ? <p>Loading menu...</p> : filteredItems.map(item => (
-                                    <div key={item.id} className="glass-card" style={{ padding: '1rem', cursor: 'pointer', transition: '0.2s', display: 'flex', flexDirection: 'column', gap: '0.5rem' }} onClick={() => addToCart(item)}>
-                                        <h4 style={{ margin: 0, fontSize: '1rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</h4>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>₹{Number(item.price).toFixed(0)}</span>
-                                            <div style={{ width: '28px', height: '28px', background: 'var(--primary)', borderRadius: '50%', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem' }}>+</div>
+                                    <div
+                                        key={item.id}
+                                        className="glass-card"
+                                        style={{
+                                            padding: '16px',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s, box-shadow 0.2s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '8px',
+                                            border: '1px solid rgba(255,255,255,0.05)',
+                                            background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)'
+                                        }}
+                                        onClick={() => addToCart(item)}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(-4px)';
+                                            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = 'translateY(0)';
+                                            e.currentTarget.style.boxShadow = 'none';
+                                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                                        }}
+                                    >
+                                        <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600' }}>{item.name}</h4>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                                            <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#10b981' }}>₹{Number(item.price).toFixed(0)}</span>
+                                            <div style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                background: '#4f46e5',
+                                                borderRadius: '8px',
+                                                color: 'white',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                fontSize: '1.2rem',
+                                                boxShadow: '0 4px 6px rgba(79, 70, 229, 0.2)'
+                                            }}>+</div>
                                         </div>
                                     </div>
                                 ))}
@@ -511,8 +574,14 @@ export default function SalesmanDashboard() {
                                         style={{ marginBottom: '1rem', padding: '0.8rem' }}
                                     >
                                         <option value="cash">Cash Payment</option>
-                                        <option value="card">Card Payment</option>
-                                        <option value="upi">UPI / Scan</option>
+                                        {settings?.paymentGatewayEnabled ? (
+                                            <>
+                                                <option value="card">Card Payment</option>
+                                                <option value="upi">UPI / Scan</option>
+                                            </>
+                                        ) : (
+                                            <option value="" disabled>Online Payments (Configure in Settings)</option>
+                                        )}
                                     </select>
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem' }}>

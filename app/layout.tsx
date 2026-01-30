@@ -7,7 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-    title: "Ruchi Restaurant - Order Delicious Food Online",
+    title: "OptexSnap - Order Delicious Food Online",
     description: "Experience the finest dining from the comfort of your home. Order from our extensive menu of authentic dishes.",
 };
 
@@ -23,7 +23,7 @@ export default function RootLayout({
                     <AuthProvider>
                         <CartProvider>
                             <Navbar />
-                            <div style={{ minHeight: 'calc(100vh - 200px)' }}>
+                            <div style={{ minHeight: 'calc(100vh - 200px)', position: 'relative', zIndex: 1, isolation: 'isolate' }}>
                                 {children}
                             </div>
                             <Footer />

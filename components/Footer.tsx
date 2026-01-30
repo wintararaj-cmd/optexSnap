@@ -1,8 +1,12 @@
 'use client';
 
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+    const pathname = usePathname();
+    if (pathname === '/' || pathname?.startsWith('/register')) return null;
+
     return (
         <footer className="footer no-print">
             <div className="container">

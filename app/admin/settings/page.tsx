@@ -14,19 +14,27 @@ interface Settings {
     paperWidth: '58mm' | '80mm';
     showLogo: boolean;
     footerText: string;
+    paymentGatewayProvider: 'razorpay' | 'stripe';
+    paymentGatewayKey: string;
+    paymentGatewaySecret: string;
+    paymentGatewayEnabled: boolean;
 }
 
 const defaultSettings: Settings = {
-    restaurantName: 'Ruchi Restaurant',
+    restaurantName: 'OptexSnap',
     restaurantAddress: '123 Main Street, City, State 12345',
     restaurantPhone: '+91 1234567890',
-    restaurantEmail: 'info@ruchi.com',
+    restaurantEmail: 'info@optexsnap.com',
     gstNumber: '',
     gstType: 'regular',
     printerType: 'thermal',
     paperWidth: '80mm',
     showLogo: true,
     footerText: 'Thank you for your business!',
+    paymentGatewayProvider: 'razorpay',
+    paymentGatewayKey: '',
+    paymentGatewaySecret: '',
+    paymentGatewayEnabled: false,
 };
 
 export default function SettingsPage() {
@@ -257,6 +265,100 @@ export default function SettingsPage() {
                                     className="input"
                                     placeholder="Enter footer text"
                                 />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card" style={{ marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2 style={{ margin: 0 }}>Payment Gateway</h2>
+                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '8px' }}>
+                                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: settings.paymentGatewayEnabled ? '#10b981' : '#64748b' }}>
+                                    {settings.paymentGatewayEnabled ? 'Enabled' : 'Disabled'}
+                                </span>
+                                <div
+                                    style={{
+                                        width: '40px',
+                                        height: '24px',
+                                        background: settings.paymentGatewayEnabled ? '#10b981' : '#e2e8f0',
+                                        borderRadius: '12px',
+                                        position: 'relative',
+                                        transition: 'background 0.2s'
+                                    }}
+                                    onClick={() => setSettings({ ...settings, paymentGatewayEnabled: !settings.paymentGatewayEnabled })}
+                                >
+                                    <div style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        background: 'white',
+                                        borderRadius: '50%',
+                                        border: '1px solid rgba(0,0,0,0.05)',
+                                        position: 'absolute',
+                                        top: '2px',
+                                        left: settings.paymentGatewayEnabled ? '18px' : '2px',
+                                        transition: 'left 0.2s',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                    }} />
+                                </div>
+                            </label>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '1rem', opacity: settings.paymentGatewayEnabled ? 1 : 0.6, pointerEvents: settings.paymentGatewayEnabled ? 'auto' : 'none', transition: 'opacity 0.2s' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                    Provider
+                                </label>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button
+                                        onClick={() => setSettings({ ...settings, paymentGatewayProvider: 'razorpay' })}
+                                        className={settings.paymentGatewayProvider === 'razorpay' ? 'btn btn-primary' : 'btn btn-ghost'}
+                                        style={{ flex: 1, justifyContent: 'center' }}
+                                    >
+                                        Razorpay
+                                    </button>
+                                    <button
+                                        onClick={() => setSettings({ ...settings, paymentGatewayProvider: 'stripe' })}
+                                        className={settings.paymentGatewayProvider === 'stripe' ? 'btn btn-primary' : 'btn btn-ghost'}
+                                        style={{ flex: 1, justifyContent: 'center' }}
+                                    >
+                                        Stripe
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        API Key / Key ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={settings.paymentGatewayKey}
+                                        onChange={(e) => setSettings({ ...settings, paymentGatewayKey: e.target.value })}
+                                        className="input"
+                                        placeholder={`Enter ${settings.paymentGatewayProvider === 'razorpay' ? 'rzp_test_...' : 'pk_test_...'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+                                        Secret Key
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={settings.paymentGatewaySecret}
+                                        onChange={(e) => setSettings({ ...settings, paymentGatewaySecret: e.target.value })}
+                                        className="input"
+                                        placeholder="••••••••••••••••"
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '12px', borderRadius: '8px', fontSize: '0.875rem', color: '#d97706', display: 'flex', gap: '8px' }}>
+                                <span>⚠️</span>
+                                <div>
+                                    Ensuring your payment gateway credentials are correct is your responsibility.
+                                    Incorrect keys will result in failed transactions on your customer app.
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export default function SalesmenPage() {
     const [salesmen, setSalesmen] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    const { user } = useAuth();
+    const plan = user?.plan || 'platinum';
+    const canAdd = plan !== 'silver';
 
     useEffect(() => {
         const token = localStorage.getItem('adminToken');
@@ -63,10 +68,25 @@ export default function SalesmenPage() {
                             ← Back to Dashboard
                         </Link>
                     </div>
-                    <Link href="/admin/salesmen/new" className="btn btn-primary">
-                        + Add New Salesman
-                    </Link>
+                    {canAdd ? (
+                        <Link href="/admin/salesmen/new" className="btn btn-primary">
+                            + Add New Salesman
+                        </Link>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span className="badge badge-warning">Upgrade Plan</span>
+                            <button className="btn btn-primary" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                + Add New Salesman
+                            </button>
+                        </div>
+                    )}
                 </div>
+
+                {!canAdd && (
+                    <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', color: '#b45309', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                        ⚠️ You are on the <strong>{plan.toUpperCase()}</strong> plan. Upgrade to <strong>Gold</strong> or <strong>Platinum</strong> to add Salesmen.
+                    </div>
+                )}
 
                 <div className="glass-card">
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>

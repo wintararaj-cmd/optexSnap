@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminDashboard() {
     const router = useRouter();
+    const { user } = useAuth();
+    const plan = (user as any)?.plan || 'platinum';
     const [stats, setStats] = useState({
         totalOrders: 0,
         pendingOrders: 0,
@@ -69,7 +72,7 @@ export default function AdminDashboard() {
     return (
         <main className="container" style={{ padding: '2rem 1.5rem' }}>
             {/* Removed fade-in class to prevent potential pointer-event issues */}
-            <div style={{ position: 'relative', zIndex: 10 }}>
+            <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                     <h1>Admin Dashboard</h1>
                     <div style={{ display: 'flex', gap: '1rem' }}>
@@ -111,26 +114,34 @@ export default function AdminDashboard() {
                         <h3>Settings</h3>
                         <p className="text-muted">Printer & restaurant info</p>
                     </Link>
-                    <Link href="/admin/salesmen" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👨‍💼</div>
-                        <h3>Salesmen</h3>
-                        <p className="text-muted">Manage sales staff</p>
-                    </Link>
-                    <Link href="/admin/delivery-boys" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛵</div>
-                        <h3>Delivery Boys</h3>
-                        <p className="text-muted">Manage delivery staff</p>
-                    </Link>
-                    <Link href="/admin/delivery-locations" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📍</div>
-                        <h3>Delivery Locations</h3>
-                        <p className="text-muted">Manage delivery zones</p>
-                    </Link>
-                    <Link href="/admin/payouts" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>💸</div>
-                        <h3>Commissions</h3>
-                        <p className="text-muted">Payouts & Reports</p>
-                    </Link>
+                    {/* Plan-Based Gating */}
+                    {plan !== 'silver' && (
+                        <Link href="/admin/salesmen" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
+                            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>👨‍💼</div>
+                            <h3>Salesmen</h3>
+                            <p className="text-muted">Manage sales staff</p>
+                        </Link>
+                    )}
+
+                    {plan === 'platinum' && (
+                        <>
+                            <Link href="/admin/delivery-boys" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛵</div>
+                                <h3>Delivery Boys</h3>
+                                <p className="text-muted">Manage delivery staff</p>
+                            </Link>
+                            <Link href="/admin/delivery-locations" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📍</div>
+                                <h3>Delivery Locations</h3>
+                                <p className="text-muted">Manage delivery zones</p>
+                            </Link>
+                            <Link href="/admin/payouts" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1 }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>💸</div>
+                                <h3>Commissions</h3>
+                                <p className="text-muted">Payouts & Reports</p>
+                            </Link>
+                        </>
+                    )}
                     <Link href="/admin/quick-bill" className="glass-card text-center" style={{ textDecoration: 'none', cursor: 'pointer', position: 'relative', zIndex: 1, borderColor: 'var(--primary)', borderWidth: '2px' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🧾</div>
                         <h3 style={{ color: 'var(--primary)' }}>Quick Bill</h3>

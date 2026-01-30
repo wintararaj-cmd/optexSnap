@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+import { useAuth } from '@/contexts/AuthContext';
+
 interface DeliveryBoy {
     id: number;
     name: string;
@@ -14,6 +16,9 @@ interface DeliveryBoy {
 export default function DeliveryBoysPage() {
     const [deliveryBoys, setDeliveryBoys] = useState<DeliveryBoy[]>([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
+    const plan = user?.plan || 'platinum';
+    const canAdd = plan === 'platinum';
 
     useEffect(() => {
         fetchDeliveryBoys();
@@ -63,10 +68,25 @@ export default function DeliveryBoysPage() {
                             ← Back to Dashboard
                         </Link>
                     </div>
-                    <Link href="/admin/delivery-boys/new" className="btn btn-primary">
-                        + Add New Delivery Boy
-                    </Link>
+                    {canAdd ? (
+                        <Link href="/admin/delivery-boys/new" className="btn btn-primary">
+                            + Add New Delivery Boy
+                        </Link>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span className="badge badge-warning">Upgrade Plan</span>
+                            <button className="btn btn-primary" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                                + Add New Delivery Boy
+                            </button>
+                        </div>
+                    )}
                 </div>
+
+                {!canAdd && (
+                    <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', color: '#b45309', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                        ⚠️ You are on the <strong>{plan.toUpperCase()}</strong> plan. Upgrade to <strong>Platinum</strong> to manage Delivery Fleet.
+                    </div>
+                )}
 
                 <div className="glass-card">
                     {deliveryBoys.length === 0 ? (

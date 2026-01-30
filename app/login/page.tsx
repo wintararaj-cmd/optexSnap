@@ -170,6 +170,36 @@ export default function LoginPage() {
                     {googleLoading ? 'Connecting to Google...' : 'Sign in with Google'}
                 </button>
 
+                <div style={{ marginTop: '1rem' }}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFormData({ email: 'demo@optexsnap.com', password: 'demo123' });
+                            // Optional: auto-submit logic could go here or user clicks login
+                            setTimeout(() => {
+                                // Triggering the form submission programmatically or just let user click
+                                const form = document.querySelector('form');
+                                if (form) form.requestSubmit();
+                            }, 100);
+                        }}
+                        className="btn"
+                        style={{
+                            width: '100%',
+                            padding: '0.875rem',
+                            background: '#1e293b',
+                            color: '#94a3b8',
+                            border: '1px solid #334155',
+                            fontSize: '0.95rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                        }}
+                    >
+                        <span>🚀</span> Try Demo Account (Admin)
+                    </button>
+                </div>
+
                 <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
                     <p className="text-muted">
                         Don't have an account?{' '}

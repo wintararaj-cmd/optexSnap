@@ -1,5 +1,5 @@
 -- ============================================
--- RUCHI RESTAURANT MANAGEMENT SYSTEM
+-- OPTEXSNAP RESTAURANT MANAGEMENT SYSTEM
 -- Complete Database Schema
 -- ============================================
 -- Version: 2.0
@@ -248,10 +248,10 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Insert default settings
 INSERT INTO settings (key, value, description) VALUES
-('restaurant_name', 'Ruchi Restaurant', 'Name of the restaurant'),
+('restaurant_name', 'OptexSnap', 'Name of the restaurant'),
 ('restaurant_address', '123 Main Street, City, State - 123456', 'Address of the restaurant'),
 ('restaurant_phone', '+91 1234567890', 'Phone number'),
-('restaurant_email', 'info@ruchi.com', 'Email address'),
+('restaurant_email', 'info@optexsnap.com', 'Email address'),
 ('gst_number', '', 'GST Identification Number'),
 ('gst_type', 'regular', 'GST Type: regular, composite, or unregistered'),
 ('printer_type', 'thermal', 'Printer type: thermal or a4'),

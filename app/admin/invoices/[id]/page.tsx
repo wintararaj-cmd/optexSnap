@@ -67,10 +67,10 @@ export default function InvoicePage() {
     }, [params.id]);
 
     const defaultSettings = {
-        restaurantName: 'Ruchi Restaurant',
+        restaurantName: 'OptexSnap',
         restaurantAddress: '123 Main Street, City, State 12345',
         restaurantPhone: '+91 1234567890',
-        restaurantEmail: 'info@ruchi.com',
+        restaurantEmail: 'info@optexsnap.com',
         gstNumber: '',
         gstType: 'regular',
         printerType: 'thermal',
@@ -143,7 +143,7 @@ export default function InvoicePage() {
                 </style>
             </head>
             <body>
-                <div class="text-center bold" style="font-size: 20px;">${settings?.restaurantName || 'Ruchi Restaurant'}</div>
+                <div class="text-center bold" style="font-size: 20px;">${settings?.restaurantName || 'OptexSnap'}</div>
                 <div class="text-center" style="font-size: 14px;">${settings?.restaurantAddress || ''}</div>
                 <div class="text-center" style="font-size: 14px;">Ph: ${settings?.restaurantPhone || ''}</div>
                 ${settings?.gstNumber ? `<div class="text-center" style="font-size: 14px;">GST: ${settings.gstNumber}</div>` : ''}
@@ -363,7 +363,7 @@ export default function InvoicePage() {
             // Header
             printer.alignCenter();
             printer.setSize(2, 2); // Double Width, Double Height
-            printer.bold(true).textLine(settings?.restaurantName || 'Ruchi Restaurant');
+            printer.bold(true).textLine(settings?.restaurantName || 'OptexSnap');
             printer.bold(false);
             printer.setSize(1, 1); // Normal
 
@@ -482,7 +482,7 @@ export default function InvoicePage() {
             `💳 *TOTAL:* ₹${parseFloat(invoice.total.toString()).toFixed(2)}\n\n` +
             `💳 *Payment Method:* ${invoice.payment_method.charAt(0).toUpperCase() + invoice.payment_method.slice(1)}\n` +
             `✅ *Payment Status:* ${invoice.payment_status.charAt(0).toUpperCase() + invoice.payment_status.slice(1)}\n\n` +
-            `🏪 *${settings?.restaurantName || 'Ruchi Restaurant'}*\n` +
+            `🏪 *${settings?.restaurantName || 'OptexSnap'}*\n` +
             `${settings?.restaurantPhone || '+91 1234567890'}\n\n` +
             `_Thank you for your order!_ 🙏`;
 
@@ -670,7 +670,7 @@ export default function InvoicePage() {
                     <div className={`glass-card invoice-container ${settings?.printerType === 'thermal' ? 'thermal-receipt' : ''}`} style={settings?.printerType === 'thermal' ? { maxWidth: settings.paperWidth, margin: '0 auto', padding: '1rem', fontSize: '0.875rem' } : { maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
                         {/* Header */}
                         <div style={{ textAlign: 'center', marginBottom: settings?.printerType === 'thermal' ? '0.5rem' : '2rem', paddingBottom: settings?.printerType === 'thermal' ? '0.5rem' : '1.5rem', borderBottom: settings?.printerType === 'thermal' ? '1px dashed #000' : '2px solid var(--border-color)' }}>
-                            <h1 style={{ fontSize: settings?.printerType === 'thermal' ? '1.25rem' : '2rem', marginBottom: '0.25rem' }}>{settings?.restaurantName || 'Ruchi Restaurant'}</h1>
+                            <h1 style={{ fontSize: settings?.printerType === 'thermal' ? '1.25rem' : '2rem', marginBottom: '0.25rem' }}>{settings?.restaurantName || 'OptexSnap'}</h1>
                             <p style={{ fontWeight: 700, margin: '0.25rem 0', textTransform: 'uppercase', fontSize: settings?.printerType === 'thermal' ? '0.875rem' : '1rem' }}>
                                 {settings?.gstType === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'}
                             </p>
@@ -692,11 +692,11 @@ export default function InvoicePage() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                                     <div>
                                         <h3 style={{ marginBottom: '0.75rem', fontSize: '1.125rem' }}>From:</h3>
-                                        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{settings?.restaurantName || 'Ruchi Restaurant'}</p>
+                                        <p style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{settings?.restaurantName || 'OptexSnap'}</p>
                                         <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
                                             {settings?.restaurantAddress || '123 Main Street, City, State 12345'}<br />
                                             Phone: {settings?.restaurantPhone || '+91 1234567890'}<br />
-                                            Email: {settings?.restaurantEmail || 'info@ruchi.com'}
+                                            Email: {settings?.restaurantEmail || 'info@optexsnap.com'}
                                             {settings?.gstNumber && <><br />GST: {settings.gstNumber}</>}
                                         </p>
                                     </div>

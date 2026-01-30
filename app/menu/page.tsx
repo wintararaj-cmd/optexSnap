@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/types';
+import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 
 export default function MenuPage() {
@@ -62,107 +63,122 @@ export default function MenuPage() {
     }
 
     return (
-        <main className="container" style={{ padding: '2rem 1.5rem' }}>
-            <div className="fade-in">
-                <h1 className="text-center mb-3">Our Menu</h1>
-                <p className="text-center text-muted mb-5" style={{ fontSize: '1.125rem' }}>
-                    Discover our delicious selection of authentic dishes
-                </p>
+        <>
+            <div style={{
+                background: '#4f46e5',
+                color: 'white',
+                textAlign: 'center',
+                padding: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000
+            }}>
+                👋 You are viewing the Customer App Demo. <Link href="/login" style={{ color: 'white', textDecoration: 'underline' }}>Login as Admin</Link> to see the dashboard.
+            </div>
+            <main className="container" style={{ padding: '2rem 1.5rem' }}>
+                <div className="fade-in">
+                    <h1 className="text-center mb-3">Our Menu</h1>
+                    <p className="text-center text-muted mb-5" style={{ fontSize: '1.125rem' }}>
+                        Discover our delicious selection of authentic dishes
+                    </p>
 
-                {/* Search and Filter */}
-                <div style={{ marginBottom: '2rem' }}>
-                    <input
-                        type="text"
-                        placeholder="Search menu items..."
-                        className="input"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{ marginBottom: '1.5rem' }}
-                    />
+                    {/* Search and Filter */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <input
+                            type="text"
+                            placeholder="Search menu items..."
+                            className="input"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{ marginBottom: '1.5rem' }}
+                        />
 
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {categories.map(category => (
-                            <button
-                                key={category}
-                                onClick={() => setSelectedCategory(category)}
-                                className={selectedCategory === category ? 'btn btn-primary' : 'btn btn-ghost'}
-                                style={{ padding: '0.625rem 1.25rem', textTransform: 'capitalize' }}
-                            >
-                                {category}
-                            </button>
-                        ))}
+                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            {categories.map(category => (
+                                <button
+                                    key={category}
+                                    onClick={() => setSelectedCategory(category)}
+                                    className={selectedCategory === category ? 'btn btn-primary' : 'btn btn-ghost'}
+                                    style={{ padding: '0.625rem 1.25rem', textTransform: 'capitalize' }}
+                                >
+                                    {category}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                {/* Menu Grid */}
-                <div key={selectedCategory} className="grid grid-3">
-                    {filteredItems.map((item, index) => (
-                        <div
-                            key={item.id}
-                            className="glass-card slide-up"
-                            style={{
-                                animationDelay: `${index * 0.05}s`,
-                                display: 'flex',
-                                flexDirection: 'column',
-                            }}
-                        >
-                            <div style={{
-                                width: '100%',
-                                height: '200px',
-                                background: item.image_url ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
-                                borderRadius: 'var(--radius-md)',
-                                marginBottom: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '4rem',
-                                overflow: 'hidden',
-                            }}>
-                                {item.image_url ? (
-                                    <img
-                                        src={item.image_url}
-                                        alt={item.name}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
-                                ) : (
-                                    '🍽️'
-                                )}
-                            </div>
-
-                            <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                                    <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{item.name}</h3>
-                                    <span className="badge badge-primary">₹{item.price}</span>
+                    {/* Menu Grid */}
+                    <div key={selectedCategory} className="grid grid-3">
+                        {filteredItems.map((item, index) => (
+                            <div
+                                key={item.id}
+                                className="glass-card slide-up"
+                                style={{
+                                    animationDelay: `${index * 0.05}s`,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                }}
+                            >
+                                <div style={{
+                                    width: '100%',
+                                    height: '200px',
+                                    background: item.image_url ? 'transparent' : 'linear-gradient(135deg, rgba(255,100,50,0.2) 0%, rgba(150,50,255,0.2) 100%)',
+                                    borderRadius: 'var(--radius-md)',
+                                    marginBottom: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '4rem',
+                                    overflow: 'hidden',
+                                }}>
+                                    {item.image_url ? (
+                                        <img
+                                            src={item.image_url}
+                                            alt={item.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        '🍽️'
+                                    )}
                                 </div>
 
-                                <p className="text-muted" style={{ fontSize: '0.9375rem', marginBottom: '1rem' }}>
-                                    {item.description}
-                                </p>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{item.name}</h3>
+                                        <span className="badge badge-primary">₹{item.price}</span>
+                                    </div>
 
-                                <span className="badge badge-success" style={{ marginBottom: '1rem' }}>
-                                    {item.category_name || 'Unknown'}
-                                </span>
+                                    <p className="text-muted" style={{ fontSize: '0.9375rem', marginBottom: '1rem' }}>
+                                        {item.description}
+                                    </p>
+
+                                    <span className="badge badge-success" style={{ marginBottom: '1rem' }}>
+                                        {item.category_name || 'Unknown'}
+                                    </span>
+                                </div>
+
+                                <button
+                                    onClick={() => handleAddToCart(item)}
+                                    className={addedItems.has(item.id) ? 'btn btn-secondary' : 'btn btn-primary'}
+                                    style={{ width: '100%', marginTop: 'auto' }}
+                                >
+                                    {addedItems.has(item.id) ? '✓ Added!' : '+ Add to Cart'}
+                                </button>
                             </div>
-
-                            <button
-                                onClick={() => handleAddToCart(item)}
-                                className={addedItems.has(item.id) ? 'btn btn-secondary' : 'btn btn-primary'}
-                                style={{ width: '100%', marginTop: 'auto' }}
-                            >
-                                {addedItems.has(item.id) ? '✓ Added!' : '+ Add to Cart'}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-
-                {filteredItems.length === 0 && (
-                    <div className="text-center" style={{ padding: '4rem 0' }}>
-                        <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)' }}>
-                            No items found. Try a different search or category.
-                        </p>
+                        ))}
                     </div>
-                )}
-            </div>
-        </main>
+
+                    {filteredItems.length === 0 && (
+                        <div className="text-center" style={{ padding: '4rem 0' }}>
+                            <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)' }}>
+                                No items found. Try a different search or category.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </>
     );
 }

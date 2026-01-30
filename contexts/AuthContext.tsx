@@ -10,6 +10,7 @@ interface User {
     role: 'customer' | 'admin' | 'salesman' | 'delivery_boy';
     phone?: string;
     address?: string;
+    plan?: string;
 }
 
 interface AuthContextType {
@@ -104,14 +105,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         } else if (user) {
             // Logged in
+            const plan = (user as any).plan || 'platinum';
+
             if (isAdminRoute && user.role !== 'admin') {
                 router.push('/');
             }
-            if (isSalesmanRoute && user.role !== 'salesman' && user.role !== 'admin') {
-                router.push('/');
+            if (isSalesmanRoute) {
+                if (user.role !== 'salesman' && user.role !== 'admin') {
+                    router.push('/');
+                }
+                // Gold/Platinum Only
+                if (plan === 'silver') {
+                    alert('Upgrade to Gold to access Salesman features');
+                    router.push('/admin');
+                }
             }
-            if (isDeliveryRoute && user.role !== 'delivery_boy' && user.role !== 'admin') {
-                router.push('/');
+            if (isDeliveryRoute) {
+                if (user.role !== 'delivery_boy' && user.role !== 'admin') {
+                    router.push('/');
+                }
+                // Platinum Only
+                if (plan !== 'platinum') {
+                    alert('Upgrade to Platinum to access Delivery features');
+                    router.push('/admin');
+                }
             }
         }
     }, [user, loading, pathname, router]);

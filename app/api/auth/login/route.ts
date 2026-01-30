@@ -14,6 +14,23 @@ export async function POST(request: Request) {
             );
         }
 
+        // Hardcoded Demo User
+        if (email === 'demo@optexsnap.com' && password === 'demo123') {
+            const user = {
+                id: 99999,
+                name: 'Demo Admin',
+                email: 'demo@optexsnap.com',
+                role: 'admin',
+                plan: 'platinum'
+            };
+            const token = Buffer.from(`demo-token-${Date.now()}`).toString('base64');
+
+            return NextResponse.json({
+                success: true,
+                data: { user, token }
+            });
+        }
+
         // Check database for user
         const result = await query('SELECT * FROM users WHERE email = $1', [email]);
 
@@ -38,6 +55,12 @@ export async function POST(request: Request) {
 
         // Remove password hash from response
         delete user.password_hash;
+
+        // Fetch Current Plan
+        const settingsRes = await query("SELECT value FROM settings WHERE key = 'current_plan'");
+        const plan = settingsRes.rows.length > 0 ? settingsRes.rows[0].value : 'platinum'; // Default to platinum if not set
+
+        user.plan = plan;
 
         // Generate a simple session token
         const token = Buffer.from(`${user.id}-${user.email}-${Date.now()}`).toString('base64');

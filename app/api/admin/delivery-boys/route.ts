@@ -24,6 +24,18 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Name, email, and password are required' }, { status: 400 });
         }
 
+        // Check Plan
+        const settingsRes = await query("SELECT value FROM settings WHERE key = 'current_plan'");
+        const plan = settingsRes.rows.length > 0 ? settingsRes.rows[0].value : 'platinum'; // Default to platinum if not set
+
+        if (plan !== 'platinum') {
+            return NextResponse.json({
+                success: false,
+                error: 'Upgrade to PLATINUM plan to manage Delivery Fleet.',
+                code: 'PLAN_LIMIT_REACHED'
+            }, { status: 403 });
+        }
+
         // Check if email exists
         const check = await query("SELECT id FROM users WHERE email = $1", [email]);
         if (check.rowCount > 0) {
