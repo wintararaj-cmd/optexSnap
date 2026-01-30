@@ -15,9 +15,9 @@ async function runMigrations() {
 
     const client = new Client({
         connectionString,
-        ssl: {
-            rejectUnauthorized: false // Required for Railway
-        }
+        ssl: process.env.DATABASE_SSL === 'true' ? {
+            rejectUnauthorized: false
+        } : false
     });
 
     try {
