@@ -122,7 +122,7 @@ export default function SaaS_LandingPage() {
                         margin: '0 auto 48px'
                     }}>
                         Streamline orders, manage staff, and boost sales with OptexSnap.
-                        The all-in-one platform designed for growth.
+                        The all-in-one, fully mobile-compatible platform designed for growth.
                     </p>
 
                     <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '80px' }}>
@@ -255,6 +255,7 @@ export default function SaaS_LandingPage() {
                     }}>
                         {[
                             { icon: '⚡', title: 'Lightning Fast POS', desc: 'Process orders in seconds with our optimized Point of Sale system designed for high-volume environments.' },
+                            { icon: '📲', title: 'Mobile Billing & POS', desc: 'Complete mobile compatibility. Bill customers and accept payments directly from any smartphone or tablet.' },
                             { icon: '📱', title: 'Digital Menu & QR', desc: 'Contactless ordering with beautiful digital menus. Update prices and items instantly.' },
                             { icon: '🛵', title: 'Delivery Management', desc: 'Track drivers in real-time and manage your own delivery fleet efficiently.' },
                             { icon: '📈', title: 'Advanced Analytics', desc: 'Deep insights into your sales, best-selling items, and staff performance.' },
